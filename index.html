@@ -341,7 +341,7 @@ tr:hover td{background:var(--fog)}
       <button class="atab" onclick="adminTab('sessions',this)">Sessions</button>
       <button class="atab" onclick="adminTab('earnings',this)">Earnings</button>
       <button class="atab" onclick="adminTab('absences',this)">Absences</button>
-      <button class="atab" onclick="adminTab('profiles',this)">Profiles</button>
+      <button class="atab" onclick="adminTab('participants',this)">👥 Participants</button>
       <button class="atab" onclick="adminTab('po',this)">📄 PO Forms</button>
       <button class="atab" onclick="adminTab('export',this)">Export</button>
     </div>
@@ -415,14 +415,22 @@ const SCHED_H=16, LATE_M=5;
    DEFAULT ROSTER
    ============================ */
 const DEFAULT_ROSTER = [
-  {id:1,fullName:"Jordan Smith",  nick:"Jordan",initials:"JS",role:"intern",    dob:"2008-04-15"},
-  {id:2,fullName:"Maya Johnson",  nick:"Maya",  initials:"MJ",role:"intern",    dob:"2007-08-22"},
-  {id:3,fullName:"Carlos Rivera", nick:"CJ",    initials:"CR",role:"intern",    dob:"2008-11-03"},
-  {id:4,fullName:"Aisha Williams",nick:"Aisha", initials:"AW",role:"intern",    dob:"2007-06-14"},
-  {id:5,fullName:"Devon Brown",   nick:"Dev",   initials:"DB",role:"intern",    dob:"2008-02-28"},
-  {id:6,fullName:"Zoe Martinez",  nick:"Zoe",   initials:"ZM",role:"intern",    dob:"2007-09-07"},
-  {id:7,fullName:"Marcus Lee",    nick:"Marc",  initials:"ML",role:"supervisor",dob:"2005-05-19"},
-  {id:8,fullName:"Tanya Green",   nick:"Tanya", initials:"TG",role:"supervisor",dob:"2006-01-30"},
+  {id:1, fullName:"Jordan Smith",   nick:"Jordan", initials:"JS", role:"intern",     dob:"2008-04-15", active:true},
+  {id:2, fullName:"Maya Johnson",   nick:"Maya",   initials:"MJ", role:"intern",     dob:"2007-08-22", active:true},
+  {id:3, fullName:"Carlos Rivera",  nick:"CJ",     initials:"CR", role:"intern",     dob:"2008-11-03", active:true},
+  {id:4, fullName:"Aisha Williams", nick:"Aisha",  initials:"AW", role:"intern",     dob:"2007-06-14", active:true},
+  {id:5, fullName:"Devon Brown",    nick:"Dev",    initials:"DB", role:"intern",     dob:"2008-02-28", active:true},
+  {id:6, fullName:"Zoe Martinez",   nick:"Zoe",    initials:"ZM", role:"intern",     dob:"2007-09-07", active:true},
+  {id:7, fullName:"Marcus Lee",     nick:"Marc",   initials:"ML", role:"supervisor", dob:"2005-05-19", active:true},
+  {id:8, fullName:"Tanya Green",    nick:"Tanya",  initials:"TG", role:"supervisor", dob:"2006-01-30", active:true},
+  {id:9, fullName:"",  nick:"", initials:"?", role:"intern", dob:"", active:false},
+  {id:10,fullName:"", nick:"", initials:"?", role:"intern", dob:"", active:false},
+  {id:11,fullName:"", nick:"", initials:"?", role:"intern", dob:"", active:false},
+  {id:12,fullName:"", nick:"", initials:"?", role:"intern", dob:"", active:false},
+  {id:13,fullName:"", nick:"", initials:"?", role:"intern", dob:"", active:false},
+  {id:14,fullName:"", nick:"", initials:"?", role:"intern", dob:"", active:false},
+  {id:15,fullName:"", nick:"", initials:"?", role:"supervisor", dob:"", active:false},
+  {id:16,fullName:"", nick:"", initials:"?", role:"supervisor", dob:"", active:false},
 ];
 
 /* ============================
@@ -457,9 +465,11 @@ function progWeek(){ const ms=Date.now()-COHORT.start.getTime(); if(ms<0)return 
    PROFILE HELPERS
    ============================ */
 function getDob(p){ return (profiles[p.id]&&profiles[p.id].dob)||p.dob||''; }
-function getNick(p){ return (profiles[p.id]&&profiles[p.id].nickname)||p.nick||p.fullName.split(' ')[0]; }
+function getNick(p){ return (profiles[p.id]&&profiles[p.id].nickname)||p.nick||p.fullName.split(' ')[0]||''; }
+function getDisplayName(p){ return p.fullName||'Empty Slot'; }
 function isBdayMo(p){ const d=getDob(p); if(!d)return false; return new Date(d+'T00:00:00').getMonth()===new Date().getMonth(); }
 function isBdayToday(p){ const d=getDob(p); if(!d)return false; const b=new Date(d+'T00:00:00'); const n=new Date(); return b.getMonth()===n.getMonth()&&b.getDate()===n.getDate(); }
+function isActive(p){ return p.active!==false && p.fullName && p.fullName.trim()!==''; }
 
 /* ============================
    EARNINGS
@@ -511,18 +521,18 @@ function setFilter(f,el){ curFilter=f; document.querySelectorAll('.chip').forEac
 
 function renderGrid(){
   const grid=document.getElementById('pgrid'); const ws=wkStart();
-  let list=[...roster];
-  if(curFilter==='intern') list=list.filter(p=>p.role==='intern');
+  // Only show active (filled) participants on home screen
+  let list=roster.filter(p=>isActive(p));
+  if(curFilter==='intern')    list=list.filter(p=>p.role==='intern');
   else if(curFilter==='supervisor') list=list.filter(p=>p.role==='supervisor');
-  else if(curFilter==='active') list=list.filter(p=>clocked[p.id]);
-  else if(curFilter==='bday') list=list.filter(p=>isBdayMo(p));
-  if(!list.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:28px;color:var(--bark);opacity:.5;font-size:13px;">No participants match.</div>'; return; }
+  else if(curFilter==='active')     list=list.filter(p=>clocked[p.id]);
+  else if(curFilter==='bday')       list=list.filter(p=>isBdayMo(p));
+  if(!list.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:28px;color:var(--bark);opacity:.5;font-size:13px;">No participants match.<br><small>Add participants in Admin → Participants tab.</small></div>'; return; }
   grid.innerHTML=list.map(p=>{
     const active=!!clocked[p.id]; const wh=wkHrs(p.id,ws).toFixed(1);
     const perf=hasPerfWk(p.id,ws); const str=streak(p.id);
     const bdayT=isBdayToday(p); const bdayM=isBdayMo(p);
-    const nick=getNick(p);
-    const showNick=nick&&nick!==p.fullName.split(' ')[0];
+    const nick=getNick(p); const showNick=nick&&nick!==p.fullName.split(' ')[0];
     return `<div class="p-card${active?' clocked-in':''}${bdayM?' is-bday':''}" onclick="openModal(${p.id})">
       ${bdayT?'<div class="bday-badge">🎂</div>':bdayM?'<div class="bday-badge">🎉</div>':''}
       ${str>=3&&!bdayT?`<div class="streak-badge">🔥${str}</div>`:''}
@@ -729,7 +739,7 @@ function showDash(uid){
 function showAdmin(){ curAdminTab='overview'; document.querySelector('.atab').click(); renderAdminTab(); showScreen('screen-admin'); }
 function adminTab(tab,el){
   curAdminTab=tab; document.querySelectorAll('.atab').forEach(t=>t.classList.remove('active')); el.classList.add('active');
-  document.getElementById('week-sel-row').style.display=['profiles','export','absences','po'].includes(tab)?'none':'flex';
+  document.getElementById('week-sel-row').style.display=['participants','profiles','export','absences','po'].includes(tab)?'none':'flex';
   renderAdminTab();
 }
 function renderAdminTab(){
@@ -754,6 +764,8 @@ function renderAdminTab(){
     buildAbsGrid(wkStart());
   } else if(curAdminTab==='profiles'){
     buildProfiles();
+  } else if(curAdminTab==='participants'||curAdminTab==='profiles'){
+    buildParticipantsTab();
   } else if(curAdminTab==='po'){
     buildPOTab();
   } else if(curAdminTab==='export'){
@@ -785,45 +797,191 @@ function buildAbsGrid(ws){
 }
 
 /* ============================
-   PROFILES
+   PARTICIPANTS TAB (add/edit/remove)
    ============================ */
-function buildProfiles(){
+function buildParticipantsTab(){
   const el=document.getElementById('admin-content');
-  if(!editProfId) editProfId=roster[0]?.id;
-  const p=roster.find(x=>x.id===editProfId); const prof=profiles[editProfId]||{};
-  el.innerHTML=`<div class="profile-form">
-    <div class="pf-title">Edit Participant Profile</div>
-    <div class="psel">${roster.map(x=>`<div class="psel-item${x.id===editProfId?' active':''}" onclick="editProfId=${x.id};buildProfiles()">${getNick(x)}</div>`).join('')}</div>
-    <div class="fg">
-      <div class="fgroup"><label>Full Legal Name</label><input id="pf-fn" value="${p.fullName}"></div>
-      <div class="fgroup"><label>Nickname / Goes By</label><input id="pf-nn" value="${prof.nickname||p.nick||''}"></div>
+  const nextId=Math.max(...roster.map(x=>x.id),0)+1;
+
+  // Split into active filled and empty slots
+  const active=roster.filter(p=>isActive(p));
+  const empty=roster.filter(p=>!isActive(p));
+
+  el.innerHTML=`
+    <div style="padding:0 14px 12px;font-size:12px;color:var(--bark);line-height:1.6;">
+      <strong>${active.length}</strong> active participants · <strong>${empty.length}</strong> open slots · <strong>${roster.length}</strong> total
     </div>
-    <div class="fg">
-      <div class="fgroup"><label>Date of Birth</label><input id="pf-dob" type="date" value="${prof.dob||p.dob||''}"></div>
-      <div class="fgroup"><label>Role</label><select id="pf-role"><option value="intern"${p.role==='intern'?' selected':''}>Intern</option><option value="supervisor"${p.role==='supervisor'?' selected':''}>Supervisor</option></select></div>
+
+    <!-- ADD NEW BUTTON -->
+    <div style="padding:0 14px 16px;">
+      <button onclick="showAddParticipant()" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--leaf),var(--moss));color:#fff;border:none;border-radius:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 4px 13px rgba(74,124,89,.3);display:flex;align-items:center;justify-content:center;gap:8px;">
+        ＋ Add New Participant
+      </button>
     </div>
-    <div class="fg">
-      <div class="fgroup"><label>Phone Number</label><input id="pf-ph" type="tel" value="${prof.phone||''}" placeholder="(555) 000-0000"></div>
-      <div class="fgroup"><label>Email Address</label><input id="pf-em" type="email" value="${prof.email||''}" placeholder="email@example.com"></div>
+
+    <!-- ACTIVE PARTICIPANTS -->
+    <div style="padding:0 14px 6px;font-family:'Fraunces',serif;font-size:15px;font-weight:700;color:var(--soil);">Active Participants</div>
+    <div style="padding:0 14px 16px;" id="part-active-list">
+      ${active.map(p=>participantCard(p)).join('')}
     </div>
-    <div class="fg">
-      <div class="fgroup"><label>Cohort Number</label><input id="pf-co" value="${prof.cohort||'33'}"></div>
-      <div class="fgroup"><label>Emergency Contact</label><input id="pf-ec" value="${prof.emergency||''}" placeholder="Name & phone"></div>
+
+    <!-- EMPTY SLOTS -->
+    <div style="padding:0 14px 6px;font-family:'Fraunces',serif;font-size:15px;font-weight:700;color:var(--soil);">Empty Slots <span style="font-size:11px;font-family:'DM Sans',sans-serif;font-weight:400;color:var(--bark);opacity:.6;">(tap to fill in)</span></div>
+    <div style="padding:0 14px 20px;" id="part-empty-list">
+      ${empty.map(p=>emptySlotCard(p)).join('')}
+    </div>`;
+}
+
+function participantCard(p){
+  const prof=profiles[p.id]||{};
+  const nick=getNick(p); const showNick=nick&&nick!==p.fullName.split(' ')[0];
+  return `<div style="background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:9px;box-shadow:0 2px 8px var(--shadow);">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,${p.role==='supervisor'?'var(--bark),var(--soil)':'var(--leaf),var(--moss)'});display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:700;color:#fff;font-size:15px;flex-shrink:0;">${p.initials}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:14px;color:var(--soil);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.fullName}${showNick?` <span style="font-size:11px;font-style:italic;opacity:.55;">"${nick}"</span>`:''}</div>
+        <div style="font-size:11px;color:var(--bark);opacity:.6;">${RC[p.role].label}${prof.phone?' · '+prof.phone:''}${prof.dob||p.dob?' · DOB: '+(prof.dob||p.dob):''}</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <button onclick="showEditParticipant(${p.id})" style="padding:7px 12px;background:var(--fog);border:none;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;color:var(--bark);font-family:'DM Sans',sans-serif;">✏️ Edit</button>
+        <button onclick="confirmRemove(${p.id})" style="padding:7px 10px;background:#ffe5d9;border:none;border-radius:9px;font-size:12px;cursor:pointer;color:#c04020;font-family:'DM Sans',sans-serif;">✕</button>
+      </div>
     </div>
-    <div class="fg one">
-      <div class="fgroup"><label>Notes</label><textarea id="pf-no">${prof.notes||''}</textarea></div>
-    </div>
-    <button class="save-btn" onclick="saveProf()">💾 Save Profile</button>
+    ${prof.notes?`<div style="margin-top:8px;font-size:11px;color:var(--bark);opacity:.65;padding:6px 10px;background:var(--fog);border-radius:8px;">${prof.notes}</div>`:''}
   </div>`;
 }
-function saveProf(){
-  const id=editProfId; const pi=roster.findIndex(x=>x.id===id); if(pi<0)return;
-  roster[pi].fullName=document.getElementById('pf-fn').value||roster[pi].fullName;
-  roster[pi].role=document.getElementById('pf-role').value;
-  roster[pi].initials=roster[pi].fullName.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-  profiles[id]={ nickname:document.getElementById('pf-nn').value, dob:document.getElementById('pf-dob').value, phone:document.getElementById('pf-ph').value, email:document.getElementById('pf-em').value, cohort:document.getElementById('pf-co').value, emergency:document.getElementById('pf-ec').value, notes:document.getElementById('pf-no').value };
-  save(); showToast('✅ Profile saved!'); buildProfiles();
+
+function emptySlotCard(p){
+  return `<div onclick="showEditParticipant(${p.id})" style="background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:9px;box-shadow:0 2px 8px var(--shadow);cursor:pointer;border:2px dashed #e5e2dc;display:flex;align-items:center;gap:12px;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--moss)'" onmouseout="this.style.borderColor='#e5e2dc'">
+    <div style="width:42px;height:42px;border-radius:50%;background:var(--fog);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">👤</div>
+    <div>
+      <div style="font-weight:600;font-size:13px;color:var(--bark);">Empty Slot #${p.id}</div>
+      <div style="font-size:11px;color:var(--bark);opacity:.55;">Tap to add a participant</div>
+    </div>
+    <div style="margin-left:auto;font-size:20px;color:var(--moss);opacity:.5;">＋</div>
+  </div>`;
 }
+
+// Modal state for add/edit participant
+let editingPid = null;
+
+function showAddParticipant(){
+  // Find next available empty slot or create new
+  const slot = roster.find(p=>!isActive(p));
+  if(slot){ showEditParticipant(slot.id); return; }
+  // All slots filled — add a new one
+  const newId = Math.max(...roster.map(x=>x.id))+1;
+  roster.push({id:newId,fullName:'',nick:'',initials:'?',role:'intern',dob:'',active:false});
+  save(); showEditParticipant(newId);
+}
+
+function showEditParticipant(pid){
+  editingPid=pid;
+  const p=roster.find(x=>x.id===pid)||{};
+  const prof=profiles[pid]||{};
+  const isNew=!isActive(p);
+
+  document.getElementById('admin-content').innerHTML=`
+    <div style="padding:0 14px 20px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <button onclick="buildParticipantsTab()" style="padding:8px 14px;background:var(--fog);border:none;border-radius:10px;font-size:13px;cursor:pointer;color:var(--bark);font-family:'DM Sans',sans-serif;">← Back</button>
+        <div style="font-family:'Fraunces',serif;font-size:17px;font-weight:700;color:var(--soil);">${isNew?'Add Participant':'Edit Profile'}</div>
+      </div>
+
+      <!-- AVATAR PREVIEW -->
+      <div style="text-align:center;margin-bottom:20px;">
+        <div id="av-preview" style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--leaf),var(--moss));display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:700;color:#fff;font-size:22px;margin:0 auto 8px;">${p.initials||'?'}</div>
+        <div style="font-size:11px;color:var(--bark);opacity:.55;">Updates as you type</div>
+      </div>
+
+      <div class="fg">
+        <div class="fgroup"><label>Full Legal Name *</label><input id="ep-fn" value="${p.fullName||''}" placeholder="First Last" oninput="updateAvPreview()"></div>
+        <div class="fgroup"><label>Nickname / Goes By</label><input id="ep-nn" value="${prof.nickname||p.nick||''}" placeholder="What they go by"></div>
+      </div>
+      <div class="fg">
+        <div class="fgroup"><label>Role *</label>
+          <select id="ep-role" onchange="updateAvPreview()">
+            <option value="intern" ${(p.role||'intern')==='intern'?'selected':''}>Intern ($50/wk · $400 total)</option>
+            <option value="supervisor" ${p.role==='supervisor'?'selected':''}>Supervisor ($75/wk · $600 total)</option>
+          </select>
+        </div>
+        <div class="fgroup"><label>Date of Birth</label><input id="ep-dob" type="date" value="${prof.dob||p.dob||''}"></div>
+      </div>
+      <div class="fg">
+        <div class="fgroup"><label>Phone Number</label><input id="ep-ph" type="tel" value="${prof.phone||''}" placeholder="(555) 000-0000"></div>
+        <div class="fgroup"><label>Email Address</label><input id="ep-em" type="email" value="${prof.email||''}" placeholder="email@example.com"></div>
+      </div>
+      <div class="fg">
+        <div class="fgroup"><label>Cohort Number</label><input id="ep-co" value="${prof.cohort||'33'}"></div>
+        <div class="fgroup"><label>Emergency Contact</label><input id="ep-ec" value="${prof.emergency||''}" placeholder="Name & phone"></div>
+      </div>
+      <div class="fg one">
+        <div class="fgroup"><label>Mailing Address</label><input id="ep-addr" value="${prof.address||''}" placeholder="For PO / check mailing"></div>
+      </div>
+      <div class="fg one">
+        <div class="fgroup"><label>Notes</label><textarea id="ep-no">${prof.notes||''}</textarea></div>
+      </div>
+
+      <button onclick="saveParticipant()" style="width:100%;padding:15px;background:linear-gradient(135deg,var(--leaf),var(--moss));color:#fff;border:none;border-radius:13px;font-size:15px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 4px 13px rgba(74,124,89,.3);margin-bottom:10px;">
+        💾 ${isNew?'Add to Roster':'Save Changes'}
+      </button>
+      ${!isNew?`<button onclick="confirmRemove(${pid})" style="width:100%;padding:13px;background:#ffe5d9;color:#c04020;border:none;border-radius:13px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Remove from Roster</button>`:''}
+    </div>`;
+}
+
+function updateAvPreview(){
+  const fn=document.getElementById('ep-fn')?.value||'';
+  const role=document.getElementById('ep-role')?.value||'intern';
+  const initials=fn.split(' ').filter(Boolean).map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?';
+  const av=document.getElementById('av-preview');
+  if(av){
+    av.textContent=initials;
+    av.style.background=role==='supervisor'?'linear-gradient(135deg,var(--bark),var(--soil))':'linear-gradient(135deg,var(--leaf),var(--moss))';
+  }
+}
+
+function saveParticipant(){
+  const pid=editingPid;
+  const fn=document.getElementById('ep-fn').value.trim();
+  if(!fn){ showToast('⚠️ Full name is required!'); return; }
+  const role=document.getElementById('ep-role').value;
+  const initials=fn.split(' ').filter(Boolean).map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  const idx=roster.findIndex(x=>x.id===pid);
+  if(idx>=0){
+    roster[idx]={...roster[idx], fullName:fn, role, initials, active:true,
+      nick:document.getElementById('ep-nn').value||fn.split(' ')[0],
+      dob:document.getElementById('ep-dob').value};
+  } else {
+    roster.push({id:pid,fullName:fn,nick:document.getElementById('ep-nn').value||fn.split(' ')[0],initials,role,dob:document.getElementById('ep-dob').value,active:true});
+  }
+  profiles[pid]={
+    nickname:document.getElementById('ep-nn').value,
+    dob:document.getElementById('ep-dob').value,
+    phone:document.getElementById('ep-ph').value,
+    email:document.getElementById('ep-em').value,
+    cohort:document.getElementById('ep-co').value,
+    emergency:document.getElementById('ep-ec').value,
+    address:document.getElementById('ep-addr').value,
+    notes:document.getElementById('ep-no').value,
+  };
+  save(); showToast(`✅ ${fn} saved to roster!`); buildParticipantsTab();
+}
+
+function confirmRemove(pid){
+  const p=roster.find(x=>x.id===pid);
+  if(!confirm(`Remove ${p?.fullName||'this participant'} from the roster? Their session data will be kept.`)) return;
+  const idx=roster.findIndex(x=>x.id===pid);
+  if(idx>=0){
+    // Reset to empty slot (keep ID for data integrity)
+    roster[idx]={id:pid,fullName:'',nick:'',initials:'?',role:'intern',dob:'',active:false};
+  }
+  save(); showToast('Participant removed from roster.'); buildParticipantsTab();
+}
+
+/* ============================
+   PROFILES (legacy — now routes to participants tab)
+   ============================ */
+function buildProfiles(){ buildParticipantsTab(); }
 
 /* ============================
    EXPORTS
