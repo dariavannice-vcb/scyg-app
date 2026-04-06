@@ -249,6 +249,8 @@ tr:hover td{background:var(--fog)}
 .empty-state .ei{font-size:36px;margin-bottom:7px}
 .empty-state p{font-size:12px;line-height:1.5}
 .export-info{padding:0 14px 12px;font-size:12px;color:var(--bark);line-height:1.65}
+/* LOGIN */
+#pw-input:focus{outline:none}
 </style>
 </head>
 <body>
@@ -300,12 +302,38 @@ tr:hover td{background:var(--fog)}
   <div class="scroll-body" id="dash-content"></div>
 </div>
 
+<!-- LOGIN SCREEN -->
+<div id="screen-login" class="screen">
+  <div class="app-header">
+    <button class="btn-back" onclick="showHome()">← Back</button>
+    <div style="font-family:'Fraunces',serif;font-size:15px;font-weight:700">🔒 Admin Access</div>
+    <div style="width:55px"></div>
+  </div>
+  <div class="scroll-body" style="display:flex;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:24px;padding:36px 28px;width:100%;max-width:360px;margin:30px 20px;box-shadow:0 8px 32px var(--shadow-lg);text-align:center;">
+      <div style="font-size:48px;margin-bottom:14px;">🌿🔐</div>
+      <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:var(--soil);margin-bottom:6px;">Admin Login</div>
+      <div style="font-size:13px;color:var(--bark);opacity:.65;margin-bottom:24px;">Second Chance Youth Garden · Cohort 33</div>
+      <input id="pw-input" type="password" placeholder="Enter admin password"
+        style="width:100%;padding:14px 16px;border-radius:13px;border:2px solid #e5e2dc;font-size:16px;font-family:'DM Sans',sans-serif;color:var(--soil);outline:none;margin-bottom:12px;text-align:center;letter-spacing:4px;"
+        onfocus="this.style.borderColor='var(--moss)'" onblur="this.style.borderColor='#e5e2dc'"
+        onkeydown="if(event.key==='Enter')checkPassword()">
+      <div id="pw-error" style="display:none;color:#c04020;font-size:12px;font-weight:600;margin-bottom:12px;"></div>
+      <button onclick="checkPassword()"
+        style="width:100%;padding:15px;background:linear-gradient(135deg,var(--leaf),var(--moss));color:#fff;border:none;border-radius:13px;font-size:16px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 4px 14px rgba(74,124,89,.35);">
+        Unlock Admin ✓
+      </button>
+      <div style="font-size:11px;color:var(--bark);opacity:.45;margin-top:16px;">Authorized staff only</div>
+    </div>
+  </div>
+</div>
+
 <!-- ADMIN -->
 <div id="screen-admin" class="screen">
   <div class="app-header">
     <button class="btn-back" onclick="showHome()">← Home</button>
     <div style="font-family:'Fraunces',serif;font-size:15px;font-weight:700">🌾 Admin</div>
-    <div style="width:55px"></div>
+    <button class="btn-back" onclick="lockAdmin()" style="font-size:11px;opacity:.8;">🔒 Lock</button>
   </div>
   <div class="scroll-body">
     <div class="admin-tabs">
@@ -314,6 +342,7 @@ tr:hover td{background:var(--fog)}
       <button class="atab" onclick="adminTab('earnings',this)">Earnings</button>
       <button class="atab" onclick="adminTab('absences',this)">Absences</button>
       <button class="atab" onclick="adminTab('profiles',this)">Profiles</button>
+      <button class="atab" onclick="adminTab('po',this)">📄 PO Forms</button>
       <button class="atab" onclick="adminTab('export',this)">Export</button>
     </div>
     <div class="week-sel" id="week-sel-row">
@@ -700,7 +729,7 @@ function showDash(uid){
 function showAdmin(){ curAdminTab='overview'; document.querySelector('.atab').click(); renderAdminTab(); showScreen('screen-admin'); }
 function adminTab(tab,el){
   curAdminTab=tab; document.querySelectorAll('.atab').forEach(t=>t.classList.remove('active')); el.classList.add('active');
-  document.getElementById('week-sel-row').style.display=['profiles','export','absences'].includes(tab)?'none':'flex';
+  document.getElementById('week-sel-row').style.display=['profiles','export','absences','po'].includes(tab)?'none':'flex';
   renderAdminTab();
 }
 function renderAdminTab(){
@@ -725,6 +754,8 @@ function renderAdminTab(){
     buildAbsGrid(wkStart());
   } else if(curAdminTab==='profiles'){
     buildProfiles();
+  } else if(curAdminTab==='po'){
+    buildPOTab();
   } else if(curAdminTab==='export'){
     el.innerHTML=`<div class="export-info">Download CSVs for accounting, payroll, and program records. All exports include Cohort 33 data.</div>
     <div class="export-area">
@@ -824,6 +855,281 @@ function exportAttendance(){
       rows.push(csvR(['Cohort 33',p.fullName,cfg.label,d.toLocaleDateString(),d.toLocaleDateString('en-US',{weekday:'long'}),'Yes',s?'Present':exc2?'Excused Absent':'Absent',s?fmt(s.clockInTime):'',s?fmt(s.clockOutTime):'',s?s.hoursWorked.toFixed(2):'0',s?s.sessionType:'—',s&&s.isLate?'Yes':'No',exc2?'Yes':'No','$'+wkEarn(p.id,ws).toFixed(2)])); }); }
   dl(`SCYG_Cohort33_Attendance_${new Date().toLocaleDateString().replace(/\//g,'-')}.csv`,rows);
   showToast('📅 Attendance export downloaded!');
+}
+
+/* ============================
+   ADMIN PASSWORD
+   ============================ */
+const ADMIN_PASSWORD = 'garden33'; // Change this to your preferred password
+let adminUnlocked = false;
+
+function showAdmin(){
+  if(adminUnlocked){ _openAdmin(); return; }
+  document.getElementById('pw-error').style.display='none';
+  document.getElementById('pw-input').value='';
+  showScreen('screen-login');
+  setTimeout(()=>document.getElementById('pw-input').focus(),300);
+}
+function checkPassword(){
+  const val=document.getElementById('pw-input').value;
+  if(val===ADMIN_PASSWORD){ adminUnlocked=true; _openAdmin(); }
+  else { const err=document.getElementById('pw-error'); err.style.display='block'; err.textContent='Incorrect password. Try again.'; document.getElementById('pw-input').value=''; document.getElementById('pw-input').focus(); }
+}
+function lockAdmin(){ adminUnlocked=false; showHome(); }
+function _openAdmin(){ curAdminTab='overview'; document.querySelector('.atab').classList.add('active'); renderAdminTab(); showScreen('screen-admin'); }
+
+/* ============================
+   PO FORM GENERATOR
+   Matches Hope Housing Works Purchase Order / Check Request Form
+   ============================ */
+function getWeekSessions_forPO(uid, ws){
+  // Returns sessions for a given week, formatted for PO line items
+  return wkSess(uid, ws).map(s => {
+    const d = new Date(s.clockInTime);
+    const dayStr = d.toLocaleDateString('en-US',{weekday:'long', month:'numeric', day:'numeric'});
+    return {
+      date: dayStr,
+      dateShort: d.toLocaleDateString('en-US',{month:'numeric',day:'numeric'}),
+      clockIn: fmt(s.clockInTime),
+      clockOut: fmt(s.clockOutTime),
+      hours: s.hoursWorked,
+      type: s.sessionType,
+      isLate: s.isLate,
+      note: s.sessionType==='make-up' ? 'Make-up' : s.isLate ? 'Late arrival' : ''
+    };
+  });
+}
+
+function generatePOForm(uid, ws){
+  const p = roster.find(x=>x.id===uid);
+  const prof = profiles[uid]||{};
+  const cfg = RC[p.role];
+  const earn = wkEarn(uid, ws);
+  const wh = wkHrs(uid, ws);
+  const sessions_po = getWeekSessions_forPO(uid, ws);
+  const weekOf = new Date(ws);
+  const weekEnd = new Date(ws + 6*86400000);
+  const weekLabel = `${weekOf.toLocaleDateString('en-US',{month:'numeric',day:'numeric'})}–${weekEnd.toLocaleDateString('en-US',{month:'numeric',day:'numeric',year:'numeric'})}`;
+  const today = new Date().toLocaleDateString('en-US',{month:'numeric',day:'numeric',year:'numeric'});
+  const cohortNum = prof.cohort || '33';
+  const weekNum = Math.floor((ws - COHORT.start.getTime()) / (7*86400000)) + 1;
+
+  // Build line items — one per session, plus any absent days noted
+  let lineItems = '';
+  let totalAmount = 0;
+  const perDayRate = cfg.stipend / (cfg.hpw / cfg.hpd); // e.g. $50/6hrs * 2hrs = $16.67/day
+
+  // Calculate daily rate based on hours worked that day
+  sessions_po.forEach((s, i) => {
+    const dayEarn = Math.min(s.hours, cfg.hpd) / cfg.hpd * perDayRate;
+    totalAmount += dayEarn;
+    const note = s.note ? ` (${s.note})` : '';
+    lineItems += `
+      <tr>
+        <td style="padding:6px 8px;border:1px solid #ccc;font-size:11px;">Youth Garden</td>
+        <td style="padding:6px 8px;border:1px solid #ccc;font-size:11px;text-align:center;">98</td>
+        <td style="padding:6px 8px;border:1px solid #ccc;font-size:11px;">Attendance ${s.dateShort} – Week ${weekNum} ${s.clockIn}–${s.clockOut}${note}</td>
+        <td style="padding:6px 8px;border:1px solid #ccc;font-size:11px;text-align:right;">$${dayEarn.toFixed(2)}</td>
+        <td style="padding:6px 8px;border:1px solid #ccc;font-size:11px;text-align:center;">6515 – Stipend</td>
+      </tr>`;
+  });
+
+  // Fill empty rows to match form format (8 rows total)
+  const emptyRows = Math.max(0, 8 - sessions_po.length);
+  for(let i=0;i<emptyRows;i++){
+    lineItems += `<tr>
+      <td style="padding:6px 8px;border:1px solid #ccc;height:28px;">&nbsp;</td>
+      <td style="padding:6px 8px;border:1px solid #ccc;">&nbsp;</td>
+      <td style="padding:6px 8px;border:1px solid #ccc;">&nbsp;</td>
+      <td style="padding:6px 8px;border:1px solid #ccc;">&nbsp;</td>
+      <td style="padding:6px 8px;border:1px solid #ccc;">&nbsp;</td>
+    </tr>`;
+  }
+
+  // Cap at weekly max
+  totalAmount = Math.min(totalAmount, cfg.stipend);
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>PO – ${p.fullName} – Week ${weekNum}</title>
+<style>
+  body { font-family: Arial, sans-serif; font-size: 12px; color: #000; margin: 0; padding: 20px; }
+  .header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+  .org-info { font-size: 11px; text-align: right; line-height: 1.6; }
+  .form-title { font-size: 18px; font-weight: bold; text-align: center; text-decoration: underline; margin-bottom: 14px; }
+  .logo-area { display: flex; align-items: center; gap: 10px; }
+  .logo-box { width: 60px; height: 40px; border: 2px solid #c00; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: bold; color: #c00; text-align: center; line-height: 1.2; }
+  table { width: 100%; border-collapse: collapse; }
+  .info-table td { padding: 4px 6px; font-size: 12px; border-bottom: 1px solid #ccc; }
+  .label { font-weight: bold; white-space: nowrap; width: 160px; }
+  .section-header { background: #d4e8d4; font-weight: bold; text-align: center; padding: 6px; font-size: 12px; border: 1px solid #999; }
+  .sig-table td { padding: 8px 6px; font-size: 10px; border: 1px solid #ccc; vertical-align: top; }
+  .sig-line { border-bottom: 1px solid #000; min-width: 120px; display: inline-block; }
+  .footer-note { font-size: 10px; font-style: italic; margin-top: 8px; }
+  .total-row td { font-weight: bold; background: #f5f5f5; }
+  @media print { body { padding: 10px; } }
+</style>
+</head>
+<body>
+<div class="header-row">
+  <div class="logo-area">
+    <div class="logo-box">SECOND<br>CHANCE</div>
+  </div>
+  <div class="form-title">Purchase Order / Check Request Form</div>
+  <div class="org-info">
+    <strong>Second Chance Program</strong><br>
+    Hope Housing Works<br>
+    Imperial Headquarters
+  </div>
+</div>
+
+<table class="info-table" style="margin-bottom:10px;">
+  <tr><td class="label">Make Check Payable To:</td><td><strong>${p.fullName}</strong></td><td class="label">Week of:</td><td>${weekLabel}</td></tr>
+  <tr><td class="label">Mailing Address:</td><td>${prof.address||'on file'}</td><td class="label">Cohort:</td><td>${cohortNum}</td></tr>
+  <tr><td class="label">City, State and Zip:</td><td></td><td class="label">Role:</td><td>${cfg.label}</td></tr>
+  <tr><td class="label">Payment is to be:</td><td>☐ Mailed &nbsp;&nbsp; ☐ Pick Up</td><td class="label">Week # in Program:</td><td>Week ${weekNum} of ${COHORT.weeks}</td></tr>
+</table>
+
+<table style="margin-bottom:10px;">
+  <thead>
+    <tr style="background:#e8e8e8;">
+      <th style="padding:7px 8px;border:1px solid #ccc;font-size:11px;text-align:left;width:15%;">Program Name</th>
+      <th style="padding:7px 8px;border:1px solid #ccc;font-size:11px;text-align:center;width:10%;">Class Code</th>
+      <th style="padding:7px 8px;border:1px solid #ccc;font-size:11px;text-align:left;">Description of what is being purchased</th>
+      <th style="padding:7px 8px;border:1px solid #ccc;font-size:11px;text-align:right;width:12%;">Amount</th>
+      <th style="padding:7px 8px;border:1px solid #ccc;font-size:11px;text-align:center;width:18%;">GL Account Code</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${lineItems}
+    <tr class="total-row">
+      <td colspan="3" style="padding:7px 8px;border:1px solid #ccc;text-align:right;font-size:12px;">Total</td>
+      <td style="padding:7px 8px;border:1px solid #ccc;text-align:right;font-size:12px;">$${totalAmount.toFixed(2)}</td>
+      <td style="padding:7px 8px;border:1px solid #ccc;"></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="section-header">Authorized Signatures</div>
+
+<table style="margin-top:8px;width:100%;">
+  <tr>
+    <td style="width:50%;padding:4px 6px;font-size:10px;font-weight:bold;border:1px solid #ccc;background:#f0f0f0;">PURCHASE ORDER AUTHORIZATIONS<br><span style="font-weight:normal;font-style:italic;">Purchase Order authorizations REQUIRED for ALL Equipment Purchases AND Required for ALL Purchases over $250</span></td>
+    <td style="width:50%;padding:4px 6px;font-size:10px;font-weight:bold;border:1px solid #ccc;background:#f0f0f0;">CHECK REQUEST AUTHORIZATIONS</td>
+  </tr>
+  <tr>
+    <td style="padding:4px 6px;border:1px solid #ccc;font-size:10px;">Requested by: <span class="sig-line" style="width:120px;">&nbsp;</span></td>
+    <td style="padding:4px 6px;border:1px solid #ccc;font-size:10px;">Requested by: <strong>Daria Van Nice</strong> &nbsp;&nbsp;&nbsp; ${today} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Finance Use Only</td>
+  </tr>
+  <tr>
+    <td style="padding:8px 6px;border:1px solid #ccc;font-size:10px;"><em>Requester's Signature:</em><br><span class="sig-line" style="width:160px;">&nbsp;</span> &nbsp; Date/time: <span class="sig-line" style="width:80px;">&nbsp;</span><br><small>(Required for All Requests)</small></td>
+    <td style="padding:8px 6px;border:1px solid #ccc;font-size:10px;"><em>Requester's Signature:</em> <strong>Daria Van Nice</strong><br><small>(Required for All Requests)</small> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Verified GL: ☐ YES &nbsp; ☐ NO</td>
+  </tr>
+  <tr>
+    <td style="padding:8px 6px;border:1px solid #ccc;font-size:10px;"><em>Program Manager's Signature:</em><br><span class="sig-line" style="width:160px;">&nbsp;</span> &nbsp; Date/time: <span class="sig-line" style="width:80px;">&nbsp;</span><br><small>(Required for up to $250)</small></td>
+    <td style="padding:8px 6px;border:1px solid #ccc;font-size:10px;"><em>Program Manager's Signature:</em> <span class="sig-line" style="width:100px;">&nbsp;</span> &nbsp; Date/time: <span class="sig-line" style="width:70px;">&nbsp;</span><br><small>(Required for up to $250)</small> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Entered by: <span class="sig-line" style="width:70px;">&nbsp;</span></td>
+  </tr>
+  <tr>
+    <td style="padding:8px 6px;border:1px solid #ccc;font-size:10px;"><em>Program Director's Signature:</em><br><span class="sig-line" style="width:160px;">&nbsp;</span> &nbsp; Date/time: <span class="sig-line" style="width:80px;">&nbsp;</span><br><small>(Required for more than $250 up to $2,000)</small></td>
+    <td style="padding:8px 6px;border:1px solid #ccc;font-size:10px;"><em>Program Director's Signature:</em> <span class="sig-line" style="width:100px;">&nbsp;</span> &nbsp; Date/time: <span class="sig-line" style="width:70px;">&nbsp;</span><br><small>(Required for more than $250 up to $2,000)</small> &nbsp; Date: <span class="sig-line" style="width:70px;">&nbsp;</span></td>
+  </tr>
+  <tr>
+    <td style="padding:8px 6px;border:1px solid #ccc;font-size:10px;"><em>CEO's Signature:</em><br><span class="sig-line" style="width:160px;">&nbsp;</span> &nbsp; Date/time: <span class="sig-line" style="width:80px;">&nbsp;</span><br><small>(Required for $2,000 or Higher)</small></td>
+    <td style="padding:8px 6px;border:1px solid #ccc;font-size:10px;"><em>CEO's Signature:</em> <span class="sig-line" style="width:120px;">&nbsp;</span> &nbsp; Date/time: <span class="sig-line" style="width:70px;">&nbsp;</span><br><small>(Required for $2,000 or Higher)</small></td>
+  </tr>
+  <tr>
+    <td style="padding:8px 6px;border:1px solid #ccc;font-size:10px;"><em>Controller's Signature:</em><br><span class="sig-line" style="width:160px;">&nbsp;</span> &nbsp; Date/time: <span class="sig-line" style="width:80px;">&nbsp;</span><br><small>(Finance Department – Required for All Requests)</small></td>
+    <td style="padding:8px 6px;border:1px solid #ccc;font-size:10px;"><em>Controller's Signature:</em> <span class="sig-line" style="width:120px;">&nbsp;</span> &nbsp; Date/time: <span class="sig-line" style="width:70px;">&nbsp;</span><br><small>(Finance Department – Required for All Requests)</small></td>
+  </tr>
+</table>
+
+<div class="footer-note" style="margin-top:10px;">
+  Payments for approved requests will be ready for pickup in Finance in accordance with the Check Run Schedule.<br>
+  All Supporting Documents Must be Attached In Order for Check to be Processed.
+</div>
+<div style="text-align:right;font-size:10px;color:#999;margin-top:16px;">Cohort ${cohortNum} attendance · Generated ${today} · Second Chance Youth Garden</div>
+</body>
+</html>`;
+  return { html, totalAmount, weekNum, weekLabel };
+}
+
+function downloadPOForm(uid, ws){
+  const p = roster.find(x=>x.id===uid);
+  const { html, weekNum } = generatePOForm(uid, ws);
+  const blob = new Blob([html], {type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `PO_${p.fullName.replace(/\s+/g,'_')}_Week${weekNum}_Cohort33.html`;
+  a.click();
+  showToast(`📄 PO form downloaded for ${getNick(p)}!`);
+}
+
+function printPOForm(uid, ws){
+  const { html } = generatePOForm(uid, ws);
+  const win = window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(()=>win.print(), 600);
+}
+
+function buildPOTab(){
+  const el = document.getElementById('admin-content');
+  const sel = document.getElementById('admin-wsel')?.value||'current';
+  const ws = sel==='current' ? wkStart() : wkStart();
+
+  // Build week selector for PO
+  const weekOptions = [];
+  for(let i=0;i<COHORT.weeks;i++){
+    const wDate = new Date(COHORT.start.getTime() + i*7*86400000);
+    const wLabel = `Week ${i+1} – ${wDate.toLocaleDateString('en-US',{month:'short',day:'numeric'})}`;
+    weekOptions.push(`<option value="${wDate.getTime()}" ${wDate.getTime()===wkStart()?'selected':''}>${wLabel}</option>`);
+  }
+
+  el.innerHTML=`
+    <div style="padding:0 14px 12px;font-size:12px;color:var(--bark);line-height:1.6">
+      Generate <strong>Hope Housing Works Purchase Order / Check Request Forms</strong> for each participant.<br>
+      Each form auto-fills with their attendance, hours, earnings, and your signature. Download as HTML then print, or print directly.
+    </div>
+    <div style="padding:0 14px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <label style="font-size:12px;font-weight:600;color:var(--bark);">Select Week:</label>
+      <select id="po-week-sel" onchange="buildPOTab()" style="padding:8px 11px;border-radius:10px;border:2px solid #e5e2dc;background:#fff;font-size:12px;font-family:'DM Sans',sans-serif;flex:1;min-width:160px;">
+        ${weekOptions.join('')}
+      </select>
+    </div>
+    <div style="padding:0 14px 8px;">
+      <button class="export-btn eb-primary" style="margin-bottom:10px;" onclick="downloadAllPOForms()">📄 Download ALL PO Forms (This Week)</button>
+    </div>
+    <div style="padding:0 14px 20px;" id="po-person-list">
+      ${roster.map(p => {
+        const poWs = parseInt(document.getElementById ? (document.getElementById('po-week-sel')?.value||ws) : ws);
+        const earn = wkEarn(p.id, ws);
+        const wh = wkHrs(p.id, ws);
+        const cfg = RC[p.role];
+        const weekNum = Math.floor((ws - COHORT.start.getTime())/(7*86400000))+1;
+        return `<div style="background:#fff;border-radius:14px;padding:15px 16px;margin-bottom:10px;box-shadow:0 2px 8px var(--shadow);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+          <div>
+            <div style="font-weight:700;font-size:14px;color:var(--soil);">${p.fullName}</div>
+            <div style="font-size:11px;color:var(--bark);opacity:.65;margin-top:2px;">${cfg.label} · Week ${weekNum} · ${wh.toFixed(1)}h worked · <strong style="color:var(--moss);">$${earn.toFixed(2)} earned</strong></div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="printPOForm(${p.id},${ws})" style="padding:9px 14px;background:var(--fog);border:none;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;color:var(--bark);font-family:'DM Sans',sans-serif;">🖨 Print</button>
+            <button onclick="downloadPOForm(${p.id},${ws})" style="padding:9px 14px;background:linear-gradient(135deg,var(--leaf),var(--moss));border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;color:#fff;font-family:'DM Sans',sans-serif;">⬇ Download</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function downloadAllPOForms(){
+  // Download all PO forms one by one with slight delay
+  const ws = wkStart();
+  roster.forEach((p, i) => {
+    setTimeout(() => downloadPOForm(p.id, ws), i * 400);
+  });
+  showToast(`📄 Downloading ${roster.length} PO forms...`);
 }
 
 /* ============================
