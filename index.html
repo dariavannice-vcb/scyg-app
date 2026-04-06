@@ -340,6 +340,7 @@ tr:hover td{background:var(--fog)}
       <button class="atab active" onclick="adminTab('overview',this)">Overview</button>
       <button class="atab" onclick="adminTab('sessions',this)">Sessions</button>
       <button class="atab" onclick="adminTab('earnings',this)">Earnings</button>
+      <button class="atab" onclick="adminTab('adjust',this)">✏️ Adjust</button>
       <button class="atab" onclick="adminTab('absences',this)">Absences</button>
       <button class="atab" onclick="adminTab('participants',this)">👥 Participants</button>
       <button class="atab" onclick="adminTab('po',this)">📄 PO Forms</button>
@@ -415,20 +416,20 @@ const SCHED_H=16, LATE_M=5;
    DEFAULT ROSTER
    ============================ */
 const DEFAULT_ROSTER = [
-  {id:1, fullName:"Jordan Smith",   nick:"Jordan", initials:"JS", role:"intern",     dob:"2008-04-15", active:true},
-  {id:2, fullName:"Maya Johnson",   nick:"Maya",   initials:"MJ", role:"intern",     dob:"2007-08-22", active:true},
-  {id:3, fullName:"Carlos Rivera",  nick:"CJ",     initials:"CR", role:"intern",     dob:"2008-11-03", active:true},
-  {id:4, fullName:"Aisha Williams", nick:"Aisha",  initials:"AW", role:"intern",     dob:"2007-06-14", active:true},
-  {id:5, fullName:"Devon Brown",    nick:"Dev",    initials:"DB", role:"intern",     dob:"2008-02-28", active:true},
-  {id:6, fullName:"Zoe Martinez",   nick:"Zoe",    initials:"ZM", role:"intern",     dob:"2007-09-07", active:true},
-  {id:7, fullName:"Marcus Lee",     nick:"Marc",   initials:"ML", role:"supervisor", dob:"2005-05-19", active:true},
-  {id:8, fullName:"Tanya Green",    nick:"Tanya",  initials:"TG", role:"supervisor", dob:"2006-01-30", active:true},
-  {id:9, fullName:"",  nick:"", initials:"?", role:"intern", dob:"", active:false},
-  {id:10,fullName:"", nick:"", initials:"?", role:"intern", dob:"", active:false},
-  {id:11,fullName:"", nick:"", initials:"?", role:"intern", dob:"", active:false},
-  {id:12,fullName:"", nick:"", initials:"?", role:"intern", dob:"", active:false},
-  {id:13,fullName:"", nick:"", initials:"?", role:"intern", dob:"", active:false},
-  {id:14,fullName:"", nick:"", initials:"?", role:"intern", dob:"", active:false},
+  {id:1, fullName:"", nick:"", initials:"?", role:"intern",     dob:"", active:false},
+  {id:2, fullName:"", nick:"", initials:"?", role:"intern",     dob:"", active:false},
+  {id:3, fullName:"", nick:"", initials:"?", role:"intern",     dob:"", active:false},
+  {id:4, fullName:"", nick:"", initials:"?", role:"intern",     dob:"", active:false},
+  {id:5, fullName:"", nick:"", initials:"?", role:"intern",     dob:"", active:false},
+  {id:6, fullName:"", nick:"", initials:"?", role:"intern",     dob:"", active:false},
+  {id:7, fullName:"", nick:"", initials:"?", role:"intern",     dob:"", active:false},
+  {id:8, fullName:"", nick:"", initials:"?", role:"intern",     dob:"", active:false},
+  {id:9, fullName:"", nick:"", initials:"?", role:"intern",     dob:"", active:false},
+  {id:10,fullName:"", nick:"", initials:"?", role:"intern",     dob:"", active:false},
+  {id:11,fullName:"", nick:"", initials:"?", role:"intern",     dob:"", active:false},
+  {id:12,fullName:"", nick:"", initials:"?", role:"intern",     dob:"", active:false},
+  {id:13,fullName:"", nick:"", initials:"?", role:"intern",     dob:"", active:false},
+  {id:14,fullName:"", nick:"", initials:"?", role:"intern",     dob:"", active:false},
   {id:15,fullName:"", nick:"", initials:"?", role:"supervisor", dob:"", active:false},
   {id:16,fullName:"", nick:"", initials:"?", role:"supervisor", dob:"", active:false},
 ];
@@ -436,15 +437,37 @@ const DEFAULT_ROSTER = [
 /* ============================
    STATE
    ============================ */
-let sessions = ls('scyg_s',[]);
-let clocked  = ls('scyg_c',{});
-let excused  = ls('scyg_e',{});
-let profiles = ls('scyg_p',{});
-let roster   = ls('scyg_r',DEFAULT_ROSTER);
+// Version key — changing this wipes old data and starts fresh for Cohort 33
+const DATA_VERSION = 'cohort33_v1';
+if(localStorage.getItem('scyg_version') !== DATA_VERSION){
+  // Fresh start — clear all prior session/clock/excused data
+  localStorage.removeItem('scyg_s');
+  localStorage.removeItem('scyg_c');
+  localStorage.removeItem('scyg_e');
+  localStorage.removeItem('scyg_adj');
+  // Keep profiles/roster if they exist so admin doesn't re-enter names
+  localStorage.setItem('scyg_version', DATA_VERSION);
+}
+
+let sessions     = ls('scyg_s',[]);
+let clocked      = ls('scyg_c',{});
+let excused      = ls('scyg_e',{});
+let profiles     = ls('scyg_p',{});
+let roster       = ls('scyg_r',DEFAULT_ROSTER);
+// adjustments: [{id, userId, date, hoursAdj, payAdj, note, createdAt}]
+let adjustments  = ls('scyg_adj',[]);
+
 let curFilter='all', curType='scheduled', curModalUid=null, lastConfUser=null, curAdminTab='overview', editProfId=null, tickIv=null;
 
 function ls(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } }
-function save(){ localStorage.setItem('scyg_s',JSON.stringify(sessions)); localStorage.setItem('scyg_c',JSON.stringify(clocked)); localStorage.setItem('scyg_e',JSON.stringify(excused)); localStorage.setItem('scyg_p',JSON.stringify(profiles)); localStorage.setItem('scyg_r',JSON.stringify(roster)); }
+function save(){
+  localStorage.setItem('scyg_s',JSON.stringify(sessions));
+  localStorage.setItem('scyg_c',JSON.stringify(clocked));
+  localStorage.setItem('scyg_e',JSON.stringify(excused));
+  localStorage.setItem('scyg_p',JSON.stringify(profiles));
+  localStorage.setItem('scyg_r',JSON.stringify(roster));
+  localStorage.setItem('scyg_adj',JSON.stringify(adjustments));
+}
 
 /* ============================
    TIME UTILS
@@ -472,13 +495,33 @@ function isBdayToday(p){ const d=getDob(p); if(!d)return false; const b=new Date
 function isActive(p){ return p.active!==false && p.fullName && p.fullName.trim()!==''; }
 
 /* ============================
-   EARNINGS
+   EARNINGS  (includes manual adjustments)
    ============================ */
 function wkSess(uid,ws){ return sessions.filter(s=>s.userId===uid&&inWk(s.clockInTime,ws)&&s.clockOutTime); }
-function wkHrs(uid,ws){ return wkSess(uid,ws).reduce((a,s)=>a+(s.hoursWorked||0),0); }
-function wkEarn(uid,ws){ const p=roster.find(x=>x.id===uid); const c=RC[p.role]; return Math.min(wkHrs(uid,ws),c.hpw)/c.hpw*c.stipend; }
-function progEarn(uid){ const ws=[...new Set(sessions.filter(s=>s.userId===uid&&s.clockOutTime).map(s=>wkStart(new Date(s.clockInTime))))]; return ws.reduce((a,w)=>a+wkEarn(uid,w),0); }
-function totalHrs(uid){ return sessions.filter(s=>s.userId===uid&&s.clockOutTime).reduce((a,s)=>a+(s.hoursWorked||0),0); }
+function wkHrs(uid,ws){
+  const sessHrs=wkSess(uid,ws).reduce((a,s)=>a+(s.hoursWorked||0),0);
+  const adjHrs=adjustments.filter(a=>a.userId===uid&&inWk(a.date,ws)).reduce((a,x)=>a+(x.hoursAdj||0),0);
+  return Math.max(0, sessHrs+adjHrs);
+}
+function wkEarn(uid,ws){
+  const p=roster.find(x=>x.id===uid); const c=RC[p.role];
+  const sessEarn=Math.min(wkHrs(uid,ws),c.hpw)/c.hpw*c.stipend;
+  const adjPay=adjustments.filter(a=>a.userId===uid&&inWk(a.date,ws)).reduce((a,x)=>a+(x.payAdj||0),0);
+  return Math.max(0, Math.min(sessEarn+adjPay, c.stipend));
+}
+function progEarn(uid){
+  const allWs=[...new Set([
+    ...sessions.filter(s=>s.userId===uid&&s.clockOutTime).map(s=>wkStart(new Date(s.clockInTime))),
+    ...adjustments.filter(a=>a.userId===uid).map(a=>wkStart(new Date(a.date)))
+  ])];
+  return allWs.reduce((a,ws)=>a+wkEarn(uid,ws),0);
+}
+function totalHrs(uid){
+  const sessHrs=sessions.filter(s=>s.userId===uid&&s.clockOutTime).reduce((a,s)=>a+(s.hoursWorked||0),0);
+  const adjHrs=adjustments.filter(a=>a.userId===uid).reduce((a,x)=>a+(x.hoursAdj||0),0);
+  return Math.max(0,sessHrs+adjHrs);
+}
+function getAdjustments(uid,ws){ return adjustments.filter(a=>a.userId===uid&&(ws===undefined||inWk(a.date,ws))); }
 
 /* ============================
    ABSENCES
@@ -738,8 +781,9 @@ function showDash(uid){
    ============================ */
 function showAdmin(){ curAdminTab='overview'; document.querySelector('.atab').click(); renderAdminTab(); showScreen('screen-admin'); }
 function adminTab(tab,el){
-  curAdminTab=tab; document.querySelectorAll('.atab').forEach(t=>t.classList.remove('active')); el.classList.add('active');
-  document.getElementById('week-sel-row').style.display=['participants','profiles','export','absences','po'].includes(tab)?'none':'flex';
+  curAdminTab=tab;
+  document.querySelectorAll('.atab').forEach(t=>t.classList.remove('active')); el.classList.add('active');
+  document.getElementById('week-sel-row').style.display=['participants','profiles','export','absences','po','adjust'].includes(tab)?'none':'flex';
   renderAdminTab();
 }
 function renderAdminTab(){
@@ -762,19 +806,25 @@ function renderAdminTab(){
   } else if(curAdminTab==='absences'){
     el.innerHTML=`<div class="abs-note">Tap <span class="tag tr">✗ Absent</span> to mark <span class="tag ty">✓ Excused</span> (unlocks make-up hours). Tap again to undo.</div><div class="abs-wrap" id="abs-grid"></div>`;
     buildAbsGrid(wkStart());
-  } else if(curAdminTab==='profiles'){
-    buildProfiles();
+  } else if(curAdminTab==='adjust'){
+    buildAdjustTab();
   } else if(curAdminTab==='participants'||curAdminTab==='profiles'){
     buildParticipantsTab();
   } else if(curAdminTab==='po'){
     buildPOTab();
   } else if(curAdminTab==='export'){
-    el.innerHTML=`<div class="export-info">Download CSVs for accounting, payroll, and program records. All exports include Cohort 33 data.</div>
-    <div class="export-area">
-      <button class="export-btn eb-primary" onclick="exportPayroll()">📊 Payroll / Accounting Export (CSV)</button>
-      <button class="export-btn eb-dark" onclick="exportParticipants()">👥 Participant Profiles Export (CSV)</button>
-      <button class="export-btn eb-sun" onclick="exportAttendance()">📅 Full Attendance Report (CSV)</button>
-    </div>`;
+    el.innerHTML=`
+      <div class="export-info">Download CSVs for accounting, payroll, and program records. All exports include Cohort 33 data.</div>
+      <div class="export-area">
+        <button class="export-btn eb-primary" onclick="exportPayroll()">📊 Payroll / Accounting Export (CSV)</button>
+        <button class="export-btn eb-dark" onclick="exportParticipants()">👥 Participant Profiles Export (CSV)</button>
+        <button class="export-btn eb-sun" onclick="exportAttendance()">📅 Full Attendance Report (CSV)</button>
+      </div>
+      <div style="margin:0 14px 8px;padding:16px;background:#fff;border-radius:14px;box-shadow:0 2px 8px var(--shadow);">
+        <div style="font-family:'Fraunces',serif;font-size:14px;font-weight:700;color:var(--soil);margin-bottom:6px;">⚠️ Reset All Data</div>
+        <div style="font-size:12px;color:var(--bark);opacity:.7;margin-bottom:12px;line-height:1.5;">Clears all sessions, clock records, and adjustments. Roster names and profiles are kept. Use at the start of a new cohort.</div>
+        <button onclick="resetAllData()" style="width:100%;padding:13px;background:#ffe5d9;color:#c04020;border:none;border-radius:11px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;">🗑 Reset All Sessions & Hours</button>
+      </div>`;
   }
 }
 
@@ -984,15 +1034,185 @@ function confirmRemove(pid){
 function buildProfiles(){ buildParticipantsTab(); }
 
 /* ============================
+   ADJUSTMENTS TAB
+   Admin can manually add/edit hours and pay for any participant
+   ============================ */
+function buildAdjustTab(){
+  const el=document.getElementById('admin-content');
+  const activeRoster=roster.filter(p=>isActive(p));
+
+  el.innerHTML=`
+    <div style="padding:0 14px 10px;font-size:12px;color:var(--bark);line-height:1.6;">
+      Manually add, correct, or override hours and pay for any participant. Adjustments stack on top of clocked sessions and appear in all exports and PO forms.
+    </div>
+
+    <!-- ADD ADJUSTMENT FORM -->
+    <div style="background:#fff;border-radius:16px;padding:18px 16px;margin:0 14px 16px;box-shadow:0 3px 13px var(--shadow);">
+      <div style="font-family:'Fraunces',serif;font-size:15px;font-weight:700;color:var(--soil);margin-bottom:14px;">＋ Add Manual Adjustment</div>
+      <div class="fg">
+        <div class="fgroup">
+          <label>Participant</label>
+          <select id="adj-uid" style="padding:10px 12px;border-radius:10px;border:2px solid #e5e2dc;background:#fff;font-size:13px;font-family:'DM Sans',sans-serif;">
+            ${activeRoster.map(p=>`<option value="${p.id}">${p.fullName} (${RC[p.role].label})</option>`).join('')}
+          </select>
+        </div>
+        <div class="fgroup">
+          <label>Date</label>
+          <input id="adj-date" type="date" value="${new Date().toISOString().slice(0,10)}" style="padding:10px 12px;border-radius:10px;border:2px solid #e5e2dc;background:#fff;font-size:13px;font-family:'DM Sans',sans-serif;">
+        </div>
+      </div>
+      <div class="fg">
+        <div class="fgroup">
+          <label>Hours Adjustment</label>
+          <input id="adj-hrs" type="number" step="0.25" placeholder="e.g. 2.0 or -1.0" style="padding:10px 12px;border-radius:10px;border:2px solid #e5e2dc;background:#fff;font-size:13px;font-family:'DM Sans',sans-serif;">
+          <span style="font-size:10px;color:var(--bark);opacity:.6;">Use negative to deduct hours</span>
+        </div>
+        <div class="fgroup">
+          <label>Pay Adjustment ($)</label>
+          <input id="adj-pay" type="number" step="0.01" placeholder="e.g. 10.00 or -5.00" style="padding:10px 12px;border-radius:10px;border:2px solid #e5e2dc;background:#fff;font-size:13px;font-family:'DM Sans',sans-serif;">
+          <span style="font-size:10px;color:var(--bark);opacity:.6;">Use negative to deduct pay</span>
+        </div>
+      </div>
+      <div class="fg one">
+        <div class="fgroup">
+          <label>Reason / Note (required)</label>
+          <input id="adj-note" placeholder="e.g. Make-up session approved, Correction for missed clock-out, Bonus hours awarded" style="padding:10px 12px;border-radius:10px;border:2px solid #e5e2dc;background:#fff;font-size:13px;font-family:'DM Sans',sans-serif;">
+        </div>
+      </div>
+      <button onclick="saveAdjustment()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--leaf),var(--moss));color:#fff;border:none;border-radius:11px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:4px;">
+        ✓ Save Adjustment
+      </button>
+    </div>
+
+    <!-- EXISTING ADJUSTMENTS -->
+    <div style="padding:0 14px 6px;font-family:'Fraunces',serif;font-size:15px;font-weight:700;color:var(--soil);">
+      Adjustment History <span style="font-size:11px;font-family:'DM Sans',sans-serif;font-weight:400;opacity:.55;">(${adjustments.length} total)</span>
+    </div>
+    <div style="padding:0 14px 20px;" id="adj-list">
+      ${buildAdjList()}
+    </div>
+
+    <!-- PER-PERSON SUMMARY -->
+    <div style="padding:0 14px 6px;font-family:'Fraunces',serif;font-size:15px;font-weight:700;color:var(--soil);">Current Hours & Pay Summary</div>
+    <div style="padding:0 14px 20px;">
+      <div style="background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px var(--shadow);">
+        <table style="width:100%;min-width:400px;font-size:12px;border-collapse:collapse;">
+          <thead><tr style="background:var(--fog);">
+            <th style="padding:9px 12px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--bark);">Name</th>
+            <th style="padding:9px 12px;text-align:right;font-size:10px;text-transform:uppercase;color:var(--bark);">Clocked Hrs</th>
+            <th style="padding:9px 12px;text-align:right;font-size:10px;text-transform:uppercase;color:var(--bark);">Adj Hrs</th>
+            <th style="padding:9px 12px;text-align:right;font-size:10px;text-transform:uppercase;color:var(--bark);">Total Hrs</th>
+            <th style="padding:9px 12px;text-align:right;font-size:10px;text-transform:uppercase;color:var(--bark);">Wk Pay</th>
+            <th style="padding:9px 12px;text-align:right;font-size:10px;text-transform:uppercase;color:var(--bark);">Prog Total</th>
+          </tr></thead>
+          <tbody>
+            ${activeRoster.map(p=>{
+              const ws=wkStart();
+              const rawHrs=wkSess(p.id,ws).reduce((a,s)=>a+(s.hoursWorked||0),0);
+              const adjHrs=adjustments.filter(a=>a.userId===p.id&&inWk(a.date,ws)).reduce((a,x)=>a+(x.hoursAdj||0),0);
+              const totHrs=wkHrs(p.id,ws);
+              const we=wkEarn(p.id,ws);
+              const pe=progEarn(p.id);
+              const cfg=RC[p.role];
+              return `<tr style="border-top:1px solid #f0ece5;">
+                <td style="padding:10px 12px;font-weight:600;color:var(--soil);">${p.fullName}</td>
+                <td style="padding:10px 12px;text-align:right;color:var(--bark);">${rawHrs.toFixed(1)}h</td>
+                <td style="padding:10px 12px;text-align:right;color:${adjHrs>=0?'var(--moss)':'var(--coral)'};">${adjHrs>=0?'+':''}${adjHrs.toFixed(1)}h</td>
+                <td style="padding:10px 12px;text-align:right;font-weight:700;color:var(--soil);">${totHrs.toFixed(1)}h</td>
+                <td style="padding:10px 12px;text-align:right;color:var(--moss);font-weight:600;">$${we.toFixed(2)}</td>
+                <td style="padding:10px 12px;text-align:right;font-weight:700;color:var(--soil);">$${pe.toFixed(2)}<span style="font-size:9px;opacity:.5;">/$${cfg.total}</span></td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function buildAdjList(){
+  if(!adjustments.length) return '<div class="empty-state"><div class="ei">📋</div><p>No adjustments yet.<br>Add one above to correct or supplement hours and pay.</p></div>';
+  return [...adjustments].reverse().map(a=>{
+    const p=roster.find(x=>x.id===a.userId);
+    const d=new Date(a.date).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    const hrsStr=a.hoursAdj!=null&&a.hoursAdj!==0?`${a.hoursAdj>=0?'+':''}${a.hoursAdj}h `:'';
+    const payStr=a.payAdj!=null&&a.payAdj!==0?`${a.payAdj>=0?'+$':'-$'}${Math.abs(a.payAdj).toFixed(2)}`:'';
+    return `<div style="background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:8px;box-shadow:0 2px 7px var(--shadow);display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:600;font-size:13px;color:var(--soil);">${p?.fullName||'Unknown'} <span style="font-size:11px;font-weight:400;color:var(--bark);opacity:.6;">· ${d}</span></div>
+        <div style="font-size:12px;color:var(--moss);font-weight:600;margin-top:2px;">${hrsStr}${payStr||'note only'}</div>
+        <div style="font-size:11px;color:var(--bark);opacity:.65;margin-top:3px;">${a.note||''}</div>
+      </div>
+      <button onclick="removeAdjustment('${a.id}')" style="padding:5px 9px;background:#ffe5d9;border:none;border-radius:8px;font-size:11px;cursor:pointer;color:#c04020;flex-shrink:0;">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function saveAdjustment(){
+  const uid=parseInt(document.getElementById('adj-uid').value);
+  const date=document.getElementById('adj-date').value;
+  const hrs=parseFloat(document.getElementById('adj-hrs').value)||0;
+  const pay=parseFloat(document.getElementById('adj-pay').value)||0;
+  const note=document.getElementById('adj-note').value.trim();
+  if(!note){ showToast('⚠️ Please add a reason for this adjustment.'); return; }
+  if(!uid||!date){ showToast('⚠️ Please select a participant and date.'); return; }
+  if(hrs===0&&pay===0){ showToast('⚠️ Enter an hours or pay adjustment amount.'); return; }
+  adjustments.push({
+    id: Date.now().toString(),
+    userId: uid,
+    date: new Date(date+'T12:00:00').getTime(),
+    hoursAdj: hrs,
+    payAdj: pay,
+    note,
+    createdAt: Date.now()
+  });
+  save();
+  showToast(`✅ Adjustment saved for ${roster.find(x=>x.id===uid)?.fullName||'participant'}!`);
+  buildAdjustTab();
+}
+
+function removeAdjustment(adjId){
+  if(!confirm('Remove this adjustment?')) return;
+  adjustments=adjustments.filter(a=>a.id!==adjId);
+  save(); buildAdjustTab();
+}
+
+function resetAllData(){
+  if(!confirm('⚠️ RESET ALL DATA?\n\nThis will permanently clear:\n• All clock-in/out sessions\n• All manual adjustments\n• All excused absences\n\nParticipant names and profiles will be kept.\n\nThis cannot be undone. Are you sure?')) return;
+  sessions=[]; clocked={}; excused={}; adjustments=[];
+  save();
+  showToast('✅ All session data has been reset. Starting fresh!');
+  renderAdminTab();
+}
+
+/* ============================
    EXPORTS
    ============================ */
 function csvR(arr){ return arr.map(v=>`"${String(v==null?'':v).replace(/"/g,'""')}"`).join(','); }
 function dl(name,rows){ const blob=new Blob([rows.join('\n')],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); }
 
 function exportPayroll(){
-  const rows=[csvR(['Cohort','Full Name','Nickname','Role','Session Date','Day of Week','Clock In','Clock Out','Hours Worked','Session Type','Late (Y/N)','Week Of','Week Earnings','Program Total Earned','Program Pay Goal'])];
-  [...sessions].sort((a,b)=>a.clockInTime-b.clockInTime).forEach(s=>{ const p=roster.find(x=>x.id===s.userId); if(!p)return; const ws=wkStart(new Date(s.clockInTime)); const prof=profiles[p.id]||{};
-    rows.push(csvR(['Cohort 33',p.fullName,prof.nickname||p.nick||'',RC[p.role].label,new Date(s.clockInTime).toLocaleDateString(),new Date(s.clockInTime).toLocaleDateString('en-US',{weekday:'long'}),fmt(s.clockInTime),fmt(s.clockOutTime),s.hoursWorked.toFixed(2),s.sessionType,s.isLate?'Yes':'No',new Date(ws).toLocaleDateString(),'$'+wkEarn(p.id,ws).toFixed(2),'$'+progEarn(p.id).toFixed(2),'$'+RC[p.role].total])); });
+  const rows=[csvR(['Cohort','Full Name','Nickname','Role','Entry Type','Session Date','Day of Week','Clock In','Clock Out','Hours','Pay','Note','Week Of','Week Total Earnings','Program Total Earned','Program Pay Goal'])];
+  // Sessions
+  [...sessions].sort((a,b)=>a.clockInTime-b.clockInTime).forEach(s=>{
+    const p=roster.find(x=>x.id===s.userId); if(!p)return;
+    const ws=wkStart(new Date(s.clockInTime)); const prof=profiles[p.id]||{};
+    const dayEarn=(s.hoursWorked/RC[p.role].hpw)*RC[p.role].stipend;
+    rows.push(csvR(['Cohort 33',p.fullName,prof.nickname||p.nick||'',RC[p.role].label,'Clock Session',
+      new Date(s.clockInTime).toLocaleDateString(),new Date(s.clockInTime).toLocaleDateString('en-US',{weekday:'long'}),
+      fmt(s.clockInTime),fmt(s.clockOutTime),s.hoursWorked.toFixed(2),'$'+dayEarn.toFixed(2),
+      s.sessionType+(s.isLate?' (late)':''),new Date(ws).toLocaleDateString(),
+      '$'+wkEarn(p.id,ws).toFixed(2),'$'+progEarn(p.id).toFixed(2),'$'+RC[p.role].total]));
+  });
+  // Adjustments
+  [...adjustments].sort((a,b)=>a.date-b.date).forEach(a=>{
+    const p=roster.find(x=>x.id===a.userId); if(!p)return;
+    const ws=wkStart(new Date(a.date)); const prof=profiles[p.id]||{};
+    rows.push(csvR(['Cohort 33',p.fullName,prof.nickname||p.nick||'',RC[p.role].label,'Manual Adjustment',
+      new Date(a.date).toLocaleDateString(),new Date(a.date).toLocaleDateString('en-US',{weekday:'long'}),
+      '','',a.hoursAdj!=null?a.hoursAdj.toFixed(2):'0',
+      a.payAdj!=null?'$'+a.payAdj.toFixed(2):'$0.00',a.note,
+      new Date(ws).toLocaleDateString(),'$'+wkEarn(p.id,ws).toFixed(2),'$'+progEarn(p.id).toFixed(2),'$'+RC[p.role].total]));
+  });
   dl(`SCYG_Cohort33_Payroll_${new Date().toLocaleDateString().replace(/\//g,'-')}.csv`,rows);
   showToast('📊 Payroll export downloaded!');
 }
