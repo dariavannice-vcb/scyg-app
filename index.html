@@ -3,36 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-
-<!-- Primary SEO -->
-<meta name="description" content="Second Chance Youth Garden — attendance, scheduling, and points tracking for youth participants. An 8-week urban farming and job-readiness program by Hope Housing Works, San Diego CA.">
-<meta name="keywords" content="Second Chance Youth Garden, Hope Housing Works, youth jobs, San Diego, urban farming, workforce development, Cohort 35">
-<meta name="author" content="Hope Housing Works — Second Chance Program">
-<meta name="robots" content="noindex, nofollow">
-
-<!-- Open Graph (Facebook / Square previews) -->
-<meta property="og:title" content="Second Chance Youth Garden — Participant App">
-<meta property="og:description" content="Growing skills. Building futures. Clock in, view your schedule, earn points, and track your progress.">
-<meta property="og:type" content="website">
-<meta property="og:locale" content="en_US">
-
-<!-- Twitter Card -->
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Second Chance Youth Garden">
-<meta name="twitter:description" content="Youth attendance and program app — Hope Housing Works, Imperial HQ, San Diego CA.">
-
-<!-- PWA / Mobile -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="SCYG">
-<meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#1e3d1e">
-<meta name="application-name" content="SCYG">
-
-<!-- Security -->
-<meta http-equiv="X-Content-Type-Options" content="nosniff">
-
-<title>Second Chance Youth Garden | Hope Housing Works</title>
+<title>Second Chance Youth Garden</title>
 <link rel="manifest" href="manifest.json">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,700&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -123,7 +98,7 @@ select.fi{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 .pf:last-child{border-bottom:none}
 .pfl{font-size:10px;font-weight:600;color:var(--is);text-transform:uppercase;letter-spacing:.4px}
 .pfv{font-size:13px;color:var(--im);text-align:right;max-width:58%}
-
+.gbn{padding:10px 14px;border-radius:10px;margin-bottom:10px;display:flex;gap:8px;align-items:flex-start;font-size:12px;line-height:1.45}
 .si{background:#fff;border-radius:12px;border:.5px solid rgba(0,0,0,.07);padding:11px 13px;margin-bottom:6px;display:flex;gap:10px;align-items:flex-start}
 .sd{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
 @keyframes pI{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
@@ -262,7 +237,7 @@ select.fi{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
     </div>
   </div>
   <div class="sb" style="padding:14px 16px 0">
-    
+    <div id="geo-bn" style="display:none"></div>
     <div class="cd" style="margin-bottom:12px">
       <div class="rs" style="margin-bottom:10px">
         <div class="rw" style="gap:6px"><div id="ck-dot" style="width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3)"></div><span style="font-size:12px;color:rgba(255,255,255,.65)" id="ck-lbl">Not clocked in</span></div>
@@ -270,7 +245,7 @@ select.fi{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
       </div>
       <div id="ck-body"></div>
       <button id="ck-btn" onclick="hClock()" class="btn" style="background:rgba(255,255,255,.18);color:#fff;font-size:14px;padding:11px">🟢 Clock in</button>
-      
+      <div id="geo-chk" style="display:none;text-align:center;font-size:11px;color:rgba(255,255,255,.6);margin-top:8px">📍 Checking your location…</div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:14px">
       <div class="cg" style="padding:10px;border-radius:12px"><div style="font-size:8px;font-weight:700;color:var(--f2);letter-spacing:.4px;text-transform:uppercase;margin-bottom:3px">Stipend</div><div style="font-family:'Fraunces',serif;font-size:15px;font-weight:700;color:var(--f2)">Pending</div></div>
@@ -439,7 +414,7 @@ select.fi{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
         <button class="to on" id="et-c" onclick="eT('co')">Cohorts</button>
         <button class="to" id="et-s" onclick="eT('sc')">Schedule</button>
         <button class="to" id="et-g" onclick="eT('gi')">Garden</button>
-        
+        <button class="to" id="et-f" onclick="eT('gf')">Geofence</button>
       </div>
     </div>
     <div class="sb" style="padding:0 16px">
@@ -456,9 +431,17 @@ select.fi{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
         <div style="font-size:12px;color:var(--is);margin-bottom:12px;margin-top:4px;line-height:1.5">Tap any field to update. Changes appear instantly for youth.</div>
         <div id="gi-ed"></div>
       </div>
-      </div>
+      <div id="ep-gf" style="display:none">
+        <div style="font-size:12px;color:var(--is);margin-bottom:14px;margin-top:4px;line-height:1.5">Youth must be within this radius to clock in.</div>
+        <div class="fg"><label class="fl">Site name</label><input class="fi" id="gf-n" value="Chollas Lake Garden"></div>
+        <div class="fr"><div class="fg"><label class="fl">Latitude</label><input class="fi" id="gf-la" type="number" step="0.0001" value="32.7253"></div><div class="fg"><label class="fl">Longitude</label><input class="fi" id="gf-lo" type="number" step="0.0001" value="-117.0777"></div></div>
+        <div class="fg"><label class="fl">Radius (meters)</label><input class="fi" id="gf-r" type="number" value="150"></div>
+        <div class="ca" style="margin-bottom:12px;padding:12px"><div style="font-size:12px;font-weight:600;color:var(--a);margin-bottom:4px">Finding coordinates</div><div style="font-size:12px;color:var(--im);line-height:1.5">Google Maps → long-press the entrance → coordinates appear at bottom. Copy them here.</div></div>
+        <div class="fg"><label class="fl">Geofence</label><button id="gf-tog" onclick="togGeo()" class="btn bf bs" style="width:auto">✅ Enabled</button></div>
+        <button class="btn bf" onclick="saveGeo()">Save geofence settings</button>
       </div>
     </div>
+  </div>
 </div>
 
 <!-- MODALS -->
@@ -506,3 +489,669 @@ select.fi{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 <div class="tst" id="tst"></div>
 <div class="bst" id="bst">+5 pts 🌟</div>
 </div>
+
+<script>
+'use strict';
+const K={U:'scyg_u',A:'scyg_a',S:'scyg_s',G:'scyg_g',GE:'scyg_ge',AW:'scyg_aw',CO:'scyg_co'};
+const SETUP='SCYG2026';
+const BDGS=[{e:'🌱',n:'First Session',p:10},{e:'⏰',n:'Early Bird',p:15},{e:'💧',n:'Water Keeper',p:20},{e:'🌿',n:'Green Thumb',p:25},{e:'🤝',n:'Team Player',p:20},{e:'📚',n:'Learner',p:15},{e:'⭐',n:'Star Week',p:30},{e:'🏆',n:'Champion',p:50},{e:'🌻',n:'Full Bloom',p:50}];
+const TIPS=['Water seedlings early morning to reduce evaporation and prevent leaf burn.','Companion planting: basil next to tomatoes helps repel aphids naturally.','Check soil moisture before watering — soggy roots are as bad as dry ones.','Thinning seedlings early gives the strongest plants more nutrients.','Keep a garden journal — noting what works saves effort each season.','Most vegetables need 6–8 hours of direct sunlight per day to thrive.','Compost improves soil structure, retains moisture, and feeds plants naturally.'];
+const CLRS=['#2D5C2E','#6BA86D','#E8892A','#0F6E56','#534AB7','#A32D2D','#8B5A2B'];
+const DEF_SCHED=[
+  {day:'Monday',items:[{time:'9:00 AM',title:'Morning circle & goals',loc:'Main garden',color:'#2D5C2E'},{time:'9:30 AM',title:'Bed watering & maintenance',loc:'Raised beds A–D',color:'#6BA86D'},{time:'11:00 AM',title:'Cooking skills: salad prep',loc:'Demo kitchen',color:'#E8892A'},{time:'12:30 PM',title:'Lunch break',loc:'Picnic area',color:'#0F6E56'},{time:'1:00 PM',title:'Job readiness workshop',loc:'Classroom',color:'#534AB7'}]},
+  {day:'Tuesday',items:[{time:'9:00 AM',title:'Seed starting & propagation',loc:'Greenhouse',color:'#2D5C2E'},{time:'10:30 AM',title:'Composting workshop',loc:'Compost station',color:'#6BA86D'},{time:'12:00 PM',title:'Lunch & free time',loc:'Picnic area',color:'#0F6E56'},{time:'1:00 PM',title:'Resume writing session',loc:'Classroom',color:'#534AB7'}]},
+  {day:'Wednesday',items:[{time:'9:00 AM',title:'Harvest day — all beds',loc:'Full garden site',color:'#2D5C2E'},{time:'10:30 AM',title:'Farmers market prep',loc:'Packing area',color:'#E8892A'},{time:'12:00 PM',title:'Lunch break',loc:'Picnic area',color:'#0F6E56'},{time:'1:00 PM',title:'Financial literacy: budgeting',loc:'Classroom',color:'#534AB7'}]},
+  {day:'Thursday',items:[{time:'9:00 AM',title:'Pest & disease identification',loc:'Garden beds',color:'#2D5C2E'},{time:'10:30 AM',title:'Irrigation check & repair',loc:'Irrigation system',color:'#6BA86D'},{time:'11:30 AM',title:'Cooking: recipe development',loc:'Demo kitchen',color:'#E8892A'},{time:'1:00 PM',title:'Mock job interview practice',loc:'Classroom',color:'#534AB7'}]},
+  {day:'Friday',items:[{time:'9:00 AM',title:'Weekly review & reflection',loc:'Main garden',color:'#2D5C2E'},{time:'10:00 AM',title:'Deep bed maintenance',loc:'Beds E–H',color:'#6BA86D'},{time:'11:30 AM',title:'Guest speaker: local farmer',loc:'Outdoor pavilion',color:'#0F6E56'},{time:'1:00 PM',title:'Cohort celebration / end of week',loc:'Full site',color:'#E8892A'}]}
+];
+const DEF_GARD={siteName:'Second Chance Youth Garden',address:'6145 Imperial Ave, San Diego, CA 92114',hours:'Mon–Thu · 3:00 PM – 6:00 PM (Supervisors from 4:00 PM)',crops:[{e:'🍅',n:'Tomatoes',d:'Plant Mar, harvest Jun'},{e:'🥬',n:'Kale & Chard',d:'Year-round'},{e:'🌶',n:'Peppers',d:'Summer crop'},{e:'🥕',n:'Carrots',d:'Spring planting'},{e:'🌿',n:'Herbs',d:'Basil, mint, cilantro'},{e:'🫘',n:'Beans',d:'Trellis beds'}],rules:[{e:'🧤',t:'Always wear gloves when handling compost or soil'},{e:'💧',t:'Wash hands thoroughly after working in the garden'},{e:'☀️',t:'Wear sunscreen — we work outside daily'},{e:'🌱',t:"Never pull plants without checking with a coordinator"},{e:'🚫',t:'No food or drinks in the tool storage area'}],tools:[{e:'🪣',n:'Watering can',d:'Near the faucet. Rinse after use.'},{e:'🌿',n:'Hand trowel',d:'In the green tool box. For planting & weeding.'},{e:'✂️',n:'Pruning shears',d:'Admin use only — sign out required.'}]};
+const DEF_GEO={lat:32.7102,lng:-117.0931,radius:150,name:'6145 Imperial Ave Garden',enabled:true};
+
+// Storage helpers
+function ls(k){try{return JSON.parse(localStorage.getItem(k))||null}catch(e){return null}}
+function ss(k,v){localStorage.setItem(k,JSON.stringify(v))}
+function gU(){return ls(K.U)||[]}
+function sU(u){ss(K.U,u)}
+function gA(){return ls(K.A)||null}
+function sAd(a){ss(K.A,a)}
+function gS(){return ls(K.S)||DEF_SCHED}
+function svS(s){ss(K.S,s)}
+function gG(){return ls(K.G)||DEF_GARD}
+function svG(g){ss(K.G,g)}
+function gGeo(){return ls(K.GE)||DEF_GEO}
+function svGeo(g){ss(K.GE,g)}
+function gAW(){return ls(K.AW)||[]}
+function svAW(a){ss(K.AW,a)}
+function gCO(){return ls(K.CO)||[]}
+function svCO(c){ss(K.CO,c)}
+
+// Session state
+const S={user:null,isAdmin:false,aN:'',cIn:false,cTime:null,cTmr:null,eDI:null,eII:null,eGT:null,selC:CLRS[0],conOk:false,dUid:null,editCoIdx:null};
+
+// Navigation
+function SS(n){document.querySelectorAll('.sc').forEach(s=>s.classList.remove('on'));const el=document.getElementById('sc-'+n);if(el)el.classList.add('on');}
+function yT(n,i){
+  const m={h:'yh',sc:'ysc',g:'yg',p:'yp',pr:'ypr'};
+  SS(m[n]);
+  const nav=document.getElementById('yn');
+  if(nav)nav.querySelectorAll('.nb').forEach((b,j)=>{b.classList.toggle('on',j===i);b.querySelector('.nd')?.remove();if(j===i){const d=document.createElement('div');d.className='nd';b.appendChild(d);}});
+  if(n==='p')rBL();
+  if(n==='pr')rProf();
+}
+function CM(id){document.getElementById(id).classList.remove('on');}
+document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('on');}));
+function logout(){if(S.cTmr){clearInterval(S.cTmr);S.cTmr=null;}S.cIn=false;S.cTime=null;S.user=null;S.isAdmin=false;SS('spl');}
+
+// Form helpers
+function V(id){return document.getElementById(id)?.value?.trim()||'';}
+function E(id,show){const el=document.getElementById(id);if(el)el.style.display=show?'block':'none';}
+function FE(id){document.getElementById(id)?.classList.add('er');}
+function FR(id){document.getElementById(id)?.classList.remove('er');}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+function pd(n){return String(n).padStart(2,'0');}
+function fmT(d){const h=d.getHours(),m=d.getMinutes();return`${h>12?h-12:h===0?12:h}:${pd(m)} ${h>=12?'PM':'AM'}`;}
+function fmD(d){const mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return`${mo[d.getMonth()]} ${d.getDate()}`;}
+function fmDur(mins){const h=Math.floor(mins/60),m=mins%60;if(h===0)return`${m}m`;if(m===0)return`${h}h`;return`${h}h ${m}m`;}
+function greet(){const h=new Date().getHours();return h<12?'Good morning,':h<17?'Good afternoon,':'Good evening,';}
+
+// Auth - Youth signup
+let spSt=1;
+function spN(s){
+  if(s===1){
+    let ok=true;
+    const nm=V('s-nm'),db=V('s-db'),gn=V('s-gn'),ch=V('s-ch');
+    if(!nm){E('s-nm-e',true);FE('s-nm');ok=false;}else{E('s-nm-e',false);FR('s-nm');}
+    if(!db){E('s-db-e',true);FE('s-db');ok=false;}else{E('s-db-e',false);FR('s-db');}
+    if(!gn){E('s-gn-e',true);ok=false;}else E('s-gn-e',false);
+    if(!ch){E('s-ch-e',true);ok=false;}else E('s-ch-e',false);
+    if(!ok)return;
+  }
+  if(s===2){
+    let ok=true;
+    const ph=V('s-ph').replace(/\D/g,''),em=V('s-em'),a1=V('s-a1'),cy=V('s-cy'),zp=V('s-zp');
+    if(ph.length<10){E('s-ph-e',true);FE('s-ph');ok=false;}else{E('s-ph-e',false);FR('s-ph');}
+    if(!em.includes('@')){E('s-em-e',true);FE('s-em');ok=false;}else{E('s-em-e',false);FR('s-em');}
+    if(!a1||!cy||!zp){E('s-ad-e',true);ok=false;}else E('s-ad-e',false);
+    if(!ok)return;
+  }
+  goSp(s+1);
+}
+function spB(s){goSp(s-1);}
+function goSp(n){
+  for(let i=1;i<=3;i++)document.getElementById('sp-s'+i).style.display=i===n?'block':'none';
+  document.getElementById('sp-lbl').textContent=`Step ${n} of 3`;
+  document.querySelectorAll('.std').forEach((d,i)=>{d.className='std'+(i<n-1?' dn':i===n-1?' ac':'');});
+  spSt=n;
+}
+function togCon(){
+  S.conOk=!S.conOk;
+  const b=document.getElementById('con-box');
+  b.innerHTML=S.conOk?'<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#2D5C2E" stroke-width="1.4" stroke-linecap="round"/></svg>':'';
+  b.style.borderColor=S.conOk?'var(--f2)':'var(--mg)';
+  b.style.background=S.conOk?'var(--sp)':'';
+}
+function createAcc(){
+  const p1=V('s-p1'),p2=V('s-p2');let ok=true;
+  if(!/^\d{4}$/.test(p1)){E('s-p1-e',true);ok=false;}else E('s-p1-e',false);
+  if(p1!==p2){E('s-p2-e',true);ok=false;}else E('s-p2-e',false);
+  if(!S.conOk){E('s-cn-e',true);ok=false;}else E('s-cn-e',false);
+  if(!ok)return;
+  const nm=V('s-nm'),users=gU();
+  if(users.find(u=>u.name.toLowerCase()===nm.toLowerCase())){showT('An account with that name already exists');return;}
+  const nu={id:uid(),name:nm,pin:p1,dob:V('s-db'),gender:V('s-gn'),cohort:V('s-ch'),phone:V('s-ph'),email:V('s-em'),addr1:V('s-a1'),city:V('s-cy'),zip:V('s-zp'),pts:0,sessions:0,badges:[],weekMins:0,attendance:[],createdAt:new Date().toISOString()};
+  users.push(nu);sU(users);
+  S.conOk=false;goSp(1);
+  showT('✅ Account created! Sign in below.');
+  SS('yl');document.getElementById('yl-n').value=nm;
+}
+function yLogin(){
+  const n=V('yl-n'),p=V('yl-p');
+  if(!n||!p){shLE('yl','Please enter your name and PIN');return;}
+  const u=gU().find(u=>u.name.toLowerCase()===n.toLowerCase()&&u.pin===p);
+  if(!u){shLE('yl','Name or PIN not recognised. Check spelling or create an account.');return;}
+  E('yl-e',false);S.user=u;S.isAdmin=false;loadYD();
+}
+function shLE(r,m){const el=document.getElementById(r+'-e');if(el){el.textContent=m;el.style.display='block';}}
+
+// Auth - Admin
+function createAdmin(){
+  const n=V('as-n'),c=V('as-c'),p1=V('as-p1'),p2=V('as-p2');
+  if(c!==SETUP){E('as-ce',true);return;}E('as-ce',false);
+  if(p1!==p2||p1.length<4){E('as-pe',true);return;}E('as-pe',false);
+  if(!n){showT('Please enter your name');return;}
+  sAd({name:n,pin:p1,program:V('as-pg')||'Youth Garden',org:V('as-og')||'Hope Housing Works',gl:V('as-gl')||'6515 - Stipend',cc:V('as-cc')||'98'});
+  showT('✅ Coordinator account created!');SS('al');document.getElementById('al-n').value=n;
+}
+function aLogin(){
+  const n=V('al-n'),p=V('al-p');
+  if(!n||!p){shLE('al','Please enter your name and PIN');return;}
+  const a=gA();
+  if(!a){shLE('al','No admin account found. Use setup below.');return;}
+  if(a.pin!==p){shLE('al','Incorrect admin PIN');return;}
+  E('al-e',false);S.isAdmin=true;S.aN=n;loadAD();
+}
+
+// Youth dashboard load
+function loadYD(){
+  const u=S.user;
+  document.getElementById('gr-txt').textContent=greet();
+  document.getElementById('y-nm').textContent=u.name.split(' ')[0];
+  document.getElementById('pts-hdr').textContent=(u.pts||0)+' pts';
+  document.getElementById('pts-st').textContent=u.pts||0;
+  document.getElementById('ck-co').textContent=u.cohort?u.cohort.split(' — ')[0]:'';
+  document.getElementById('wk-chip').textContent='Week '+calcWk()+' of 8';
+  document.getElementById('tip-txt').textContent=TIPS[new Date().getDate()%TIPS.length];
+  updWk();rTdPr();rYSch();rGI();SS('yh');
+}
+function calcWk(){
+  const start=new Date('2026-09-07'); // Cohort 35 Week 1 start
+  const w=Math.min(8,Math.max(1,Math.floor((new Date()-start)/(7*24*3600*1000))+1));
+  return w;
+}
+
+// Admin dashboard load
+function loadAD(){
+  document.getElementById('a-nm').textContent=S.aN;
+  const co=gCO(),act=co.find(c=>c.active)||co[0];
+  document.getElementById('a-co-lbl').textContent=act?act.name:'No active cohort — add one in Edit Content';
+  rAdSt();rAdCI();rRost();rAttLs();popAwSel();rAwH();rScEd();rGIEd();initGeoUI();rCoLs();
+  SS('ah');
+}
+function rAdSt(){
+  const users=gU(),att=users.flatMap(u=>u.attendance||[]),pts=users.reduce((s,u)=>s+(u.pts||0),0);
+  document.getElementById('st-en').textContent=users.length;
+  document.getElementById('st-ck').textContent=S.cIn?1:0;
+  document.getElementById('st-se').textContent=att.length;
+  document.getElementById('st-pt').textContent=pts;
+}
+
+// Populate cohort dropdown on signup screen
+function popCoSel(){
+  const sel=document.getElementById('s-ch');if(!sel)return;
+  const cos=gCO();
+  sel.innerHTML='<option value="">Select cohort</option>'+cos.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
+}
+
+// Clock in / out
+function hClock(){
+  if(S.cIn){dCOut();return;}
+  const geo=gGeo();
+  if(!geo.enabled){dCIn();return;}
+  const btn=document.getElementById('ck-btn');btn.disabled=true;btn.textContent='📍 Checking location…';
+  document.getElementById('geo-chk').style.display='block';
+  if(!navigator.geolocation){rCBtn();shGB('error','Location not available on this device.');return;}
+  navigator.geolocation.getCurrentPosition(pos=>{
+    rCBtn();
+    const d=hav(pos.coords.latitude,pos.coords.longitude,geo.lat,geo.lng);
+    if(d-pos.coords.accuracy<=geo.radius){hideGB();dCIn();}
+    else shGB('error',`📍 You need to be at ${geo.name} to clock in. You appear to be ~${Math.round(d)}m away (allowed: ${geo.radius}m).`);
+  },err=>{rCBtn();shGB('warn',err.code===1?'Location access denied. Go to Settings → Privacy → Location Services → Safari → While Using.':'Could not get your location. Check signal and try again.');},{enableHighAccuracy:true,timeout:10000,maximumAge:0});
+}
+function rCBtn(){const b=document.getElementById('ck-btn');b.disabled=false;b.textContent='🟢 Clock in';document.getElementById('geo-chk').style.display='none';}
+function hav(a,b,c,d){const R=6371000,dLa=(c-a)*Math.PI/180,dLo=(d-b)*Math.PI/180,x=Math.sin(dLa/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dLo/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
+function shGB(t,m){const el=document.getElementById('geo-bn');el.className='gbn '+(t==='error'?'cr':'ca');el.innerHTML=`<span style="font-size:18px;flex-shrink:0">${t==='error'?'🚫':'⚠️'}</span><div style="color:${t==='error'?'var(--r)':'var(--a)'};line-height:1.5">${m}</div>`;el.style.display='flex';}
+function hideGB(){document.getElementById('geo-bn').style.display='none';}
+function dCIn(){
+  S.cIn=true;S.cTime=new Date();
+  document.getElementById('ck-btn').textContent='🔴 Clock out';
+  document.getElementById('ck-dot').style.background='#8fe08f';
+  document.getElementById('ck-lbl').textContent='In session';
+  document.getElementById('ck-body').innerHTML=`<div style="margin-bottom:12px"><div style="font-family:'Fraunces',serif;font-size:42px;font-weight:300;color:#fff;letter-spacing:-1px;line-height:1" id="lt">0:00</div><div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:3px">Started at ${fmT(S.cTime)}</div></div>`;
+  S.cTmr=setInterval(tickT,1000);
+  showT('✅ Clocked in at '+fmT(S.cTime));
+}
+function dCOut(){
+  clearInterval(S.cTmr);S.cTmr=null;
+  const now=new Date(),mins=Math.round((now-S.cTime)/60000);
+  const entry={date:fmD(S.cTime),in:fmT(S.cTime),out:fmT(now),duration:fmDur(mins),mins,isoDate:S.cTime.toISOString()};
+  const users=gU(),idx=users.findIndex(u=>u.id===S.user.id);
+  if(idx>=0){
+    users[idx].attendance=users[idx].attendance||[];
+    users[idx].attendance.unshift(entry);
+    users[idx].weekMins=(users[idx].weekMins||0)+mins;
+    users[idx].sessions=(users[idx].sessions||0)+1;
+    const pts=mins>=120?10:mins>=60?5:2;
+    users[idx].pts=(users[idx].pts||0)+pts;
+    sU(users);S.user=users[idx];
+  }
+  S.cIn=false;S.cTime=null;
+  document.getElementById('ck-dot').style.background='rgba(255,255,255,.3)';
+  document.getElementById('ck-lbl').textContent='Not clocked in';
+  document.getElementById('ck-btn').textContent='🟢 Clock in';
+  updWk();
+  document.getElementById('pts-hdr').textContent=(S.user.pts||0)+' pts';
+  document.getElementById('pts-st').textContent=S.user.pts||0;
+  showT('✅ Session logged · '+entry.duration);
+  const pts=mins>=120?10:mins>=60?5:2;showBst(pts);
+  if(S.user.sessions===1)earnBdg(0);
+  rAdSt();rAdCI();
+}
+function tickT(){if(!S.cTime)return;const sc=Math.floor((new Date()-S.cTime)/1000),h=Math.floor(sc/3600),m=Math.floor((sc%3600)/60),s=sc%60;const el=document.getElementById('lt');if(el)el.textContent=h>0?`${h}:${pd(m)}:${pd(s)}`:`${m}:${pd(s)}`;}
+function updWk(){
+  if(S.cIn)return;
+  const mins=S.user?S.user.weekMins||0:0,pct=Math.min(100,Math.round(mins/1200*100));
+  document.getElementById('ck-body').innerHTML=`<div class="rs" style="align-items:flex-end;margin-bottom:8px"><div><div style="font-family:'Fraunces',serif;font-size:36px;font-weight:300;color:#fff;letter-spacing:-1px;line-height:1">${fmDur(mins)}</div><div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:2px">this week · goal: 20h</div></div></div><div style="height:4px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden;margin-bottom:12px"><div style="width:${pct}%;height:100%;border-radius:2px;background:rgba(255,255,255,.65);transition:width .4s"></div></div>`;
+}
+
+// Schedule
+function rTdPr(){
+  const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],dn=days[new Date().getDay()],sc=gS(),day=sc.find(d=>d.day===dn)||sc[0];
+  document.getElementById('td-pr').innerHTML=day.items.slice(0,2).map(siH).join('')+`<div style="font-size:11px;color:var(--f2);font-weight:600;padding:4px 0">+ ${Math.max(0,day.items.length-2)} more →</div>`;
+}
+function rYSch(){const sc=gS();document.getElementById('y-sch').innerHTML=sc.map(day=>`<div style="margin-bottom:16px"><div class="sl">${day.day}</div>${day.items.map(siH).join('')}</div>`).join('');}
+function siH(item){return`<div class="si"><div class="sd" style="background:${item.color}"></div><div style="min-width:54px"><div style="font-size:11px;color:var(--is);font-weight:500">${item.time}</div></div><div><div style="font-size:13px;font-weight:600;color:var(--im)">${item.title}</div><div style="font-size:11px;color:var(--is);margin-top:2px">📍 ${item.loc}</div></div></div>`;}
+
+// Garden info
+function rGI(){
+  const g=gG();
+  document.getElementById('gi-bd').innerHTML=`<div class="cg" style="padding:14px;margin-bottom:12px"><div style="font-size:24px;margin-bottom:6px">📍</div><div style="font-size:14px;font-weight:600;color:var(--f2)">${g.siteName}</div><div style="font-size:12px;color:var(--f2);opacity:.8;margin-top:2px">${g.address}</div><div style="font-size:11px;color:var(--f2);opacity:.7;margin-top:4px">${g.hours}</div></div>
+  <div class="sl">What we grow</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">${g.crops.map(c=>`<div class="card" style="padding:10px"><div style="font-size:22px;margin-bottom:4px">${c.e}</div><div style="font-size:12px;font-weight:600">${c.n}</div><div style="font-size:10px;color:var(--is);margin-top:1px">${c.d}</div></div>`).join('')}</div>
+  <div class="sl">Safety & rules</div><div class="card" style="margin-bottom:12px">${g.rules.map(r=>`<div style="display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:.5px solid rgba(0,0,0,.05)"><span style="font-size:16px;flex-shrink:0">${r.e}</span><span style="font-size:12px;color:var(--im);line-height:1.4">${r.t}</span></div>`).join('')}</div>
+  <div class="sl">Tools</div><div class="card" style="margin-bottom:12px">${g.tools.map(t=>`<div style="display:flex;gap:10px;padding:8px 0;border-bottom:.5px solid rgba(0,0,0,.05)"><span style="font-size:18px;flex-shrink:0">${t.e}</span><div><div style="font-size:12px;font-weight:600">${t.n}</div><div style="font-size:11px;color:var(--is);margin-top:1px">${t.d}</div></div></div>`).join('')}</div>`;
+}
+
+// Badges / leaderboard
+function rBL(){
+  if(!S.user)return;const u=S.user;
+  document.getElementById('pts-h').textContent=u.pts||0;
+  document.getElementById('se-c').textContent=u.sessions||0;
+  document.getElementById('bd-c').textContent=(u.badges||[]).length;
+  const all=gU().sort((a,b)=>(b.pts||0)-(a.pts||0));
+  const rk=all.findIndex(x=>x.id===u.id)+1;
+  document.getElementById('rk-d').textContent='#'+(rk||'—');
+  document.getElementById('bd-gr').innerHTML=BDGS.map((b,i)=>`<div class="bi ${(u.badges||[]).includes(i)?'ea':'lk'}"><div class="be">${b.e}</div><div class="bn2">${b.n}</div><div class="bp">+${b.p} pts</div></div>`).join('');
+  document.getElementById('lb-y').innerHTML=all.slice(0,8).map((p,i)=>`<div class="lbr" style="${p.id===u.id?'background:var(--sp);margin:0 -14px;padding:10px 14px;border-radius:10px':''}"><div class="lrk ${i===0?'g':i===1?'sv2':i===2?'br':''}"> ${['🥇','🥈','🥉'][i]||(i+1)}</div><div class="av" style="width:28px;height:28px;font-size:11px">${p.name[0]}</div><div style="font-size:13px;font-weight:${p.id===u.id?600:500};color:${p.id===u.id?'var(--f2)':'var(--im)'}">${p.name}${p.id===u.id?' (you)':''}</div><div class="lp">${p.pts||0}</div></div>`).join('');
+}
+function earnBdg(i){
+  if(!S.user)return;const users=gU(),ui=users.findIndex(u=>u.id===S.user.id);
+  if(ui<0||users[ui].badges?.includes(i))return;
+  if(!users[ui].badges)users[ui].badges=[];
+  users[ui].badges.push(i);users[ui].pts=(users[ui].pts||0)+BDGS[i].p;
+  sU(users);S.user=users[ui];showT('🏅 Badge: '+BDGS[i].n+'!');
+}
+function rProf(){
+  if(!S.user)return;const u=S.user;
+  document.getElementById('prof-c').innerHTML=`<div style="display:flex;gap:12px;align-items:center;margin-bottom:14px"><div class="av" style="width:52px;height:52px;font-size:20px">${u.name[0]}</div><div><div style="font-size:17px;font-weight:700">${u.name}</div><div style="font-size:12px;color:var(--is);margin-top:2px">${u.cohort||'—'}</div></div></div>${[['Full name',u.name],['Date of birth',u.dob],['Gender',u.gender],['Cohort',u.cohort],['Phone',u.phone],['Email',u.email],['Address',(u.addr1||'')+', '+(u.city||'')+' '+(u.zip||'')]].map(([l,v])=>`<div class="pf"><div class="pfl">${l}</div><div class="pfv">${v||'—'}</div></div>`).join('')}`;
+}
+
+// Roster
+function rRost(){
+  const el=document.getElementById('rost-ls');if(!el)return;
+  const users=gU();
+  if(!users.length){el.innerHTML='<div style="text-align:center;padding:32px;color:var(--is);font-size:13px">No participants have signed up yet.</div>';return;}
+  el.innerHTML=users.map(u=>`<div class="card" style="margin-bottom:8px;padding:12px;cursor:pointer" onclick="openYD('${u.id}')"><div class="rs"><div class="rw" style="gap:10px"><div class="av">${u.name[0]}</div><div><div style="font-size:13px;font-weight:600">${u.name}</div><div style="font-size:11px;color:var(--is)">${u.cohort||'—'} · ${u.sessions||0} sessions</div></div></div><div style="text-align:right"><div style="font-family:'Fraunces',serif;font-size:16px;font-weight:700;color:var(--f2)">${u.pts||0} pts</div><div style="font-size:10px;color:var(--is)">tap to view</div></div></div></div>`).join('');
+}
+function openYD(id){
+  const u=gU().find(x=>x.id===id);if(!u)return;S.dUid=id;
+  document.getElementById('yd-n').textContent=u.name;
+  document.getElementById('yd-b').innerHTML=[['DOB',u.dob],['Gender',u.gender],['Cohort',u.cohort],['Phone',u.phone],['Email',u.email],['Address',(u.addr1||'')+', '+(u.city||'')+' '+(u.zip||'')],['Sessions',u.sessions||0],['Points',u.pts||0],['Joined',new Date(u.createdAt).toLocaleDateString()]].map(([l,v])=>`<div class="pf"><div class="pfl">${l}</div><div class="pfv">${v||'—'}</div></div>`).join('');
+  document.getElementById('mo-yd').classList.add('on');
+}
+function delY(){if(!S.dUid)return;sU(gU().filter(u=>u.id!==S.dUid));CM('mo-yd');rRost();rAdSt();showT('Participant removed');}
+function expRoster(){
+  const users=gU();if(!users.length){showT('No participants to export');return;}
+  const rows=[['Name','DOB','Gender','Cohort','Phone','Email','Address','City','ZIP','Sessions','Points','Joined']];
+  users.forEach(u=>rows.push([u.name,u.dob,u.gender,u.cohort,u.phone,u.email,u.addr1,u.city,u.zip,u.sessions||0,u.pts||0,new Date(u.createdAt).toLocaleDateString()]));
+  dlCSV(rows,'scyg_roster.csv');showT('✅ Roster exported');
+}
+
+// Attendance
+function rAttLs(){
+  const el=document.getElementById('att-ls');if(!el)return;
+  const users=gU(),all=users.flatMap(u=>(u.attendance||[]).map(a=>({name:u.name,cohort:u.cohort,...a})));
+  if(!all.length){el.innerHTML='<div style="text-align:center;padding:40px;color:var(--is);font-size:13px">No check-ins yet.<br><span style="font-size:11px;opacity:.7">Youth clock-ins appear here.</span></div>';return;}
+  el.innerHTML=all.slice(0,30).map(r=>`<div class="card" style="margin-bottom:8px;padding:11px"><div class="rs"><div class="rw" style="gap:8px"><div class="av">${r.name[0]}</div><div><div style="font-size:13px;font-weight:600">${r.name}</div><div style="font-size:11px;color:var(--is)">${r.date} · ${r.in} – ${r.out}</div></div></div><div style="font-size:13px;font-weight:600;color:var(--f2)">${r.duration}</div></div></div>`).join('');
+}
+function rAdCI(){
+  const el=document.getElementById('a-ci');if(!el)return;
+  const users=gU(),all=users.flatMap(u=>(u.attendance||[]).map(a=>({name:u.name,...a})));
+  if(!all.length){el.innerHTML='<div class="card" style="text-align:center;padding:18px;color:var(--is);font-size:13px">No check-ins yet.</div>';return;}
+  el.innerHTML=all.slice(0,3).map(r=>`<div class="card" style="margin-bottom:8px;padding:11px"><div class="rs"><div class="rw" style="gap:8px"><div class="av">${r.name[0]}</div><div><div style="font-size:13px;font-weight:600">${r.name}</div><div style="font-size:11px;color:var(--is)">${r.date} · ${r.in} – ${r.out}</div></div></div><div style="font-size:13px;font-weight:600;color:var(--f2)">${r.duration}</div></div></div>`).join('');
+}
+function clearAtt(){const users=gU().map(u=>({...u,attendance:[],weekMins:0,sessions:0}));sU(users);rAttLs();rAdCI();rAdSt();showT('Attendance log cleared');}
+function expAttCSV(){
+  const users=gU(),all=users.flatMap(u=>(u.attendance||[]).map(a=>({name:u.name,...a})));
+  if(!all.length){showT('No attendance to export');return;}
+  dlCSV([['Name','Date','In','Out','Duration','Minutes'],...all.map(r=>[r.name,r.date,r.in,r.out,r.duration,r.mins])],'scyg_attendance.csv');
+  showT('✅ Attendance CSV downloaded');
+}
+
+// CHECK REQUEST FORM EXPORT — matches Second Chance PO / Check Request format
+function getISOWeek(d){
+  const date=new Date(d);date.setHours(0,0,0,0);date.setDate(date.getDate()+3-(date.getDay()+6)%7);
+  const week1=new Date(date.getFullYear(),0,4);
+  return 1+Math.round(((date.getTime()-week1.getTime())/86400000-3+(week1.getDay()+6)%7)/7);
+}
+function getWeekLabel(d){
+  // Label relative to cohort start date
+  const cohortStart=new Date('2026-09-07'); // Week 1 start for Cohort 35
+  const daysDiff=(new Date(d)-cohortStart)/(86400000);
+  const wk=Math.max(1,Math.floor(daysDiff/7)+1);
+  return 'Week '+wk;
+}
+function expForms(){
+  const users=gU();
+  const withAtt=users.filter(u=>(u.attendance||[]).length>0);
+  if(!withAtt.length){showT('No attendance records to export');return;}
+  const adm=gA()||{};
+  const prog=adm.program||'Youth Garden';
+  const org=adm.org||'Hope Housing Works';
+  const gl=adm.gl||'6515 - Stipend';
+  const cc=adm.cc||'98';
+  let allForms='';
+  withAtt.forEach(u=>{
+    // Group attendance by calendar week
+    const byWeek={};
+    (u.attendance||[]).forEach(a=>{
+      const d=a.isoDate?new Date(a.isoDate):new Date();
+      const wkKey=getISOWeek(d)+'_'+d.getFullYear();
+      const wkLabel=getWeekLabel(d);
+      if(!byWeek[wkKey])byWeek[wkKey]={label:wkLabel,sessions:[],key:wkKey};
+      byWeek[wkKey].sessions.push(a);
+    });
+    // Look up per-cohort rate
+    const cos=gCO();
+    const co=cos.find(c=>c.name===u.cohort);
+    const rate=co?parseFloat(co.rate||9.5):9.5;
+    Object.values(byWeek).sort((a,b)=>a.key.localeCompare(b.key)).forEach(wk=>{
+      const rows=wk.sessions.map(a=>{
+        const hrs=(a.mins||0)/60;
+        const amt=parseFloat((hrs*rate).toFixed(2));
+        return {date:a.date,desc:`Attendance ${a.date}`,amt};
+      });
+      const total=rows.reduce((s,r)=>s+r.amt,0);
+      const coName=u.cohort||prog;
+      allForms+=buildPO({name:u.name,rows,total,weekLabel:wk.label,prog:coName,org,gl,cc});
+    });
+  });
+  const win=window.open('','_blank');
+  if(!win){showT('Please allow pop-ups to download forms');return;}
+  win.document.write(`<!DOCTYPE html><html><head><title>Check Requests — SCYG</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,Helvetica,sans-serif;font-size:10pt;background:#fff}
+.page{width:7.5in;margin:0 auto;padding:.5in;page-break-after:always;border:.5px solid #ccc;margin-bottom:.25in}
+.page:last-child{page-break-after:auto}
+.hdr-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.title{font-size:14pt;font-weight:bold;text-decoration:underline;text-align:center;flex:1}
+.org-block{font-size:9pt;text-align:right;line-height:1.6}
+.field-row{margin-bottom:6px;font-size:10pt}
+.field-row strong{display:inline-block;min-width:140px;font-weight:bold}
+.pay-row{margin:8px 0 10px;font-size:10pt}
+table{width:100%;border-collapse:collapse;margin:10px 0}
+th{background:#e0e0e0;border:1px solid #333;padding:5px 6px;font-size:9pt;font-weight:bold;text-align:center}
+td{border:1px solid #555;padding:5px 6px;font-size:9pt;vertical-align:top}
+.total-row td{font-weight:bold;background:#f5f5f5}
+.sig-section{margin-top:12px}
+.sig-title{font-weight:bold;font-size:10pt;text-align:center;margin-bottom:6px;border-top:1px solid #333;padding-top:6px}
+.sig-table{width:100%;border-collapse:collapse}
+.sig-table td{border:1px solid #444;padding:6px 8px;font-size:8.5pt;vertical-align:bottom;height:38px}
+.sig-hdr{font-size:9pt;font-weight:bold;background:#f0f0f0;height:auto!important;padding:5px 8px}
+.sig-label{font-size:7.5pt;color:#555;display:block}
+.sig-threshold{font-size:7pt;color:#c00;font-style:italic}
+.finance-cell{font-size:8pt;background:#fafafa}
+.footer{font-size:8pt;font-style:italic;margin-top:10px;border-top:1px solid #ccc;padding-top:6px}
+@media print{.page{border:none;margin:0;padding:.5in;page-break-after:always}}
+</style></head><body>${allForms}
+<script>window.onload=function(){window.print();}<\/script>
+</body></html>`);
+  win.document.close();
+  showT('✅ Check requests ready to print/save as PDF');
+}
+
+function buildPO({name,rows,total,weekLabel,prog,org,gl,cc}){
+  const rowsHTML=rows.map(r=>`<tr>
+    <td style="text-align:center">${prog}</td>
+    <td style="text-align:center">${cc}</td>
+    <td>Attendance ${r.date} ${weekLabel}</td>
+    <td style="text-align:right">($ ${r.amt.toFixed(2)})</td>
+    <td style="text-align:center">${gl}</td>
+  </tr>`).join('');
+  return `<div class="page">
+  <div class="hdr-row">
+    <div style="width:80px"></div>
+    <div class="title">Purchase Order / Check Request Form</div>
+    <div class="org-block">Second Chance Program<br>${org}<br>Imperial Headquarters</div>
+  </div>
+  <div class="field-row"><strong>Make Check Payable To:</strong> <u><b>${name}</b></u></div>
+  <div class="field-row"><strong>Mailing Address:</strong> on file</div>
+  <div class="field-row"><strong>City, State and Zip:</strong></div>
+  <div class="pay-row"><strong>Payment is to be:</strong> &nbsp;&nbsp; ☐ Mailed &nbsp;&nbsp;&nbsp; ☐ Pick Up &nbsp;&nbsp; <em>(Check One Box)</em></div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:16%">Program Name</th>
+        <th style="width:10%">Class Code</th>
+        <th style="width:42%">Description of what is being purchased</th>
+        <th style="width:12%">Amount</th>
+        <th style="width:20%">GL Account Code (4 digits + Account Description)</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rowsHTML}
+      <tr><td colspan="3"></td><td></td><td></td></tr>
+      <tr><td colspan="3"></td><td></td><td></td></tr>
+      <tr class="total-row"><td colspan="3" style="text-align:right;border:none;background:none"></td><td colspan="2"><strong>Total &nbsp; $ ${total.toFixed(2)}</strong></td></tr>
+    </tbody>
+  </table>
+  <div class="sig-title">Authorized Signatures</div>
+  <table class="sig-table">
+    <tr>
+      <td colspan="2" class="sig-hdr"><em style="font-size:8pt;color:#c00">Purchase Order authorizations REQUIRED for ALL Equipment Purchases AND Required for ALL Purchases over $250</em><br><strong>PURCHASE ORDER AUTHORIZATIONS</strong></td>
+      <td colspan="3" class="sig-hdr" style="text-align:center"><strong>CHECK REQUEST AUTHORIZATIONS</strong></td>
+    </tr>
+    <tr>
+      <td style="width:30%"><span class="sig-label">Requested by:</span></td>
+      <td style="width:20%"><span class="sig-label">Date / time:</span></td>
+      <td style="width:30%"><span class="sig-label">Requested by: Daria Van Nice</span></td>
+      <td style="width:20%"><span class="sig-label">Date / time:</span></td>
+      <td class="finance-cell" style="width:20%;vertical-align:top"><span class="sig-label"><strong>Finance Use Only</strong></span></td>
+    </tr>
+    <tr>
+      <td><span class="sig-label">Requester's Signature:<br><span class="sig-threshold">(Required for All Requests)</span></span></td>
+      <td><span class="sig-label">Date / time:</span></td>
+      <td><span class="sig-label">Requester's Signature:<br><span class="sig-threshold">(Required for All Requests)</span></span></td>
+      <td><span class="sig-label">Date / time:</span></td>
+      <td class="finance-cell"><span class="sig-label">Verified GL: ☐ YES &nbsp; ☐ NO</span></td>
+    </tr>
+    <tr>
+      <td><span class="sig-label">Program Manager's Signature:<br><span class="sig-threshold">(Required for up to $250)</span></span></td>
+      <td><span class="sig-label">Date / time:</span></td>
+      <td><span class="sig-label">Program Manager's Signature:<br><span class="sig-threshold">(Required for up to $250)</span></span></td>
+      <td><span class="sig-label">Date / time:</span></td>
+      <td class="finance-cell"><span class="sig-label">Entered by:</span></td>
+    </tr>
+    <tr>
+      <td><span class="sig-label">Program Director's Signature:<br><span class="sig-threshold">(Required for more than $250 up to $2,000)</span></span></td>
+      <td><span class="sig-label">Date / time:</span></td>
+      <td><span class="sig-label">Program Director's Signature:<br><span class="sig-threshold">(Required for more than $250 up to $2,000)</span></span></td>
+      <td><span class="sig-label">Date / time:</span></td>
+      <td class="finance-cell"><span class="sig-label">Date:</span></td>
+    </tr>
+    <tr>
+      <td><span class="sig-label">CEO's Signature:<br><span class="sig-threshold">(Required for $2,000 or Higher)</span></span></td>
+      <td><span class="sig-label">Date / time:</span></td>
+      <td><span class="sig-label">CEO's Signature:<br><span class="sig-threshold">(Required for $2,000 or Higher)</span></span></td>
+      <td><span class="sig-label">Date / time:</span></td>
+      <td class="finance-cell"></td>
+    </tr>
+    <tr>
+      <td><span class="sig-label">Controller's Signature:<br><span class="sig-threshold">(Finance Department - Required for All Requests)</span></span></td>
+      <td><span class="sig-label">Date / time:</span></td>
+      <td><span class="sig-label">Controller's Signature:<br><span class="sig-threshold">(Finance Department - Required for All Requests)</span></span></td>
+      <td><span class="sig-label">Date / time:</span></td>
+      <td class="finance-cell"></td>
+    </tr>
+  </table>
+  <div class="footer">
+    Payments for approved requests will be ready for pickup in Finance in accordance with the Check Run Schedule.<br>
+    All Supporting Documents Must be Attached In Order for Check to be Processed.
+  </div>
+</div>`;
+}
+
+// Award points
+function popAwSel(){
+  const sel=document.getElementById('aw-w');if(!sel)return;
+  const users=gU();
+  sel.innerHTML='<option value="">— choose participant —</option>'+users.map(u=>`<option value="${u.id}">${u.name} (${u.pts||0} pts)</option>`).join('');
+}
+function awardPts(){
+  const uid=document.getElementById('aw-w').value;
+  if(!uid){showT('Select a youth first');return;}
+  const rv=document.getElementById('aw-r').value,[label,ptsStr]=rv.split('|');
+  const pts=label==='C'?parseInt(document.getElementById('cp').value||5):parseInt(ptsStr);
+  const users=gU(),i=users.findIndex(u=>u.id===uid);
+  if(i<0)return;
+  users[i].pts=(users[i].pts||0)+pts;sU(users);
+  const awards=gAW();awards.unshift({who:users[i].name,label,pts,time:fmT(new Date())});svAW(awards);
+  popAwSel();rAdSt();rAwH();showT(`⭐ +${pts} pts → ${users[i].name}`);showBst(pts);
+}
+function rAwH(){
+  const el=document.getElementById('aw-h');if(!el)return;
+  const aw=gAW();if(!aw.length){el.innerHTML='';return;}
+  el.innerHTML=aw.slice(0,5).map(h=>`<div class="card" style="margin-bottom:8px;padding:10px"><div class="rs"><div><div style="font-size:12px;font-weight:600">${h.who}</div><div style="font-size:11px;color:var(--is)">${h.label}</div></div><div style="text-align:right"><div style="font-family:'Fraunces',serif;font-size:16px;font-weight:700;color:var(--a)">+${h.pts}</div><div style="font-size:10px;color:var(--is)">${h.time}</div></div></div></div>`).join('');
+}
+
+// Cohorts management
+function rCoLs(){
+  const el=document.getElementById('co-ls');if(!el)return;
+  const cos=gCO();
+  if(!cos.length){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--is);font-size:13px">No cohorts added yet. Add your first cohort above.</div>';return;}
+  el.innerHTML=cos.map((c,i)=>`<div class="card" style="margin-bottom:8px;padding:12px">
+    <div class="rs">
+      <div><div style="font-size:13px;font-weight:600">${c.name}</div><div style="font-size:11px;color:var(--is)">${c.program||'Youth Garden'} · $${c.rate||9.50}/hr</div></div>
+      <div class="rw" style="gap:6px">
+        ${c.active?'<span style="background:var(--sp);color:var(--f2);font-size:10px;font-weight:600;padding:3px 8px;border-radius:20px">Active</span>':'<button onclick="setActiveCo('+i+')" style="background:none;border:.5px solid var(--mg);border-radius:20px;padding:3px 8px;font-size:10px;color:var(--is);cursor:pointer">Set active</button>'}
+        <button onclick="delCo(${i})" style="background:var(--rp);border:none;border-radius:20px;padding:3px 8px;font-size:10px;color:var(--r);cursor:pointer">Remove</button>
+      </div>
+    </div>
+  </div>`).join('');
+}
+function openAddCo(){
+  S.editCoIdx=null;
+  document.getElementById('mc-t').textContent='Add cohort';
+  document.getElementById('mc-n').value='';
+  document.getElementById('mc-p').value='Youth Garden';
+  document.getElementById('mc-r').value='9.50';
+  document.getElementById('mo-co').classList.add('on');
+}
+function saveCo(){
+  const n=document.getElementById('mc-n').value.trim();
+  if(!n){showT('Please enter a cohort name');return;}
+  const cos=gCO();
+  cos.push({name:n,program:document.getElementById('mc-p').value.trim()||'Youth Garden',rate:parseFloat(document.getElementById('mc-r').value)||9.50,active:cos.length===0});
+  svCO(cos);CM('mo-co');rCoLs();popCoSel();showT('✅ Cohort added');
+}
+function setActiveCo(i){
+  const cos=gCO().map((c,j)=>({...c,active:j===i}));svCO(cos);rCoLs();
+  const act=cos[i];document.getElementById('a-co-lbl').textContent=act.name;showT(`${act.name} set as active`);
+}
+function delCo(i){const cos=gCO();cos.splice(i,1);svCO(cos);rCoLs();popCoSel();showT('Cohort removed');}
+
+// Schedule editor
+let eDI=null,eII=null,selC=CLRS[0];
+function rScEd(){
+  const sc=gS();
+  document.getElementById('sc-ed').innerHTML=sc.map((day,di)=>`<div style="margin-bottom:18px"><div class="sl">${day.day}</div>${day.items.map((item,ii)=>`<div class="si" style="cursor:pointer;border:.5px solid rgba(232,137,42,.3)" onclick="openSI(${di},${ii})"><div class="sd" style="background:${item.color}"></div><div style="min-width:54px"><div style="font-size:11px;color:var(--is);font-weight:500">${item.time}</div></div><div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--im)">${item.title}</div><div style="font-size:11px;color:var(--is);margin-top:2px">📍 ${item.loc}</div></div><span style="color:var(--a);font-size:14px">✏️</span></div>`).join('')}<button onclick="openSI(${di},null)" style="width:100%;padding:9px;border-radius:10px;border:1.5px dashed var(--mg);background:transparent;font-size:12px;color:var(--is);cursor:pointer;margin-top:2px">+ Add activity</button></div>`).join('');
+}
+function openSI(di,ii){
+  eDI=di;eII=ii;const sc=gS(),item=ii!==null?sc[di].items[ii]:null;
+  document.getElementById('ms-t').textContent=item?'Edit activity':'Add activity';
+  document.getElementById('ms-d').textContent=sc[di].day;
+  document.getElementById('ms-ti').value=item?item.time:'9:00 AM';
+  document.getElementById('ms-n').value=item?item.title:'';
+  document.getElementById('ms-l').value=item?item.loc:'';
+  document.getElementById('ms-del').style.display=item?'flex':'none';
+  selC=item?item.color:CLRS[0];
+  document.getElementById('clr-pk').innerHTML=CLRS.map(c=>`<div onclick="selColor('${c}')" style="width:26px;height:26px;border-radius:50%;background:${c};cursor:pointer;border:2.5px solid ${c===selC?'var(--im)':'transparent'};transition:.1s"></div>`).join('');
+  document.getElementById('mo-sc').classList.add('on');
+}
+function selColor(c){selC=c;document.querySelectorAll('#clr-pk > div').forEach(el=>{el.style.border=el.style.background===c||el.style.backgroundColor===c?'2.5px solid var(--im)':'2.5px solid transparent';});}
+function saveSI(){
+  const sc=gS(),item={time:document.getElementById('ms-ti').value||'9:00 AM',title:document.getElementById('ms-n').value||'New activity',loc:document.getElementById('ms-l').value||'Garden',color:selC};
+  if(eII!==null)sc[eDI].items[eII]=item;else sc[eDI].items.push(item);
+  svS(sc);CM('mo-sc');rScEd();rYSch();rTdPr();showT('✅ Schedule updated');
+}
+function delSI(){const sc=gS();sc[eDI].items.splice(eII,1);svS(sc);CM('mo-sc');rScEd();rYSch();rTdPr();showT('Activity removed');}
+
+// Garden editor
+let eGT=null;
+function rGIEd(){
+  const g=gG();
+  document.getElementById('gi-ed').innerHTML=`<div class="sl">Site info</div><div class="card" style="margin-bottom:12px">${gER('Site name',g.siteName,'si-sn')}${gER('Address',g.address,'si-ad')}${gER('Hours',g.hours,'si-hr')}</div>
+  <div class="sl">What we grow</div><div class="card" style="margin-bottom:12px">${g.crops.map((c,i)=>`<div style="display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:.5px solid rgba(0,0,0,.05);cursor:pointer" onclick="openGF('crop-n',${i},'${c.n}')"><span style="font-size:18px">${c.e}</span><div style="flex:1"><div style="font-size:12px;font-weight:600">${c.n} <span style="color:var(--a);font-size:10px">✏️</span></div><div style="font-size:10px;color:var(--is)">${c.d}</div></div></div>`).join('')}</div>
+  <div class="sl">Safety rules</div><div class="card" style="margin-bottom:12px">${g.rules.map((r,i)=>`<div style="display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:.5px solid rgba(0,0,0,.05);cursor:pointer" onclick="openGF('rule',${i},'${r.t.replace(/'/g,"\\'")}')"><span style="font-size:16px">${r.e}</span><div style="flex:1;font-size:12px">${r.t}</div><span style="color:var(--a);font-size:14px">✏️</span></div>`).join('')}</div>`;
+}
+function gER(label,val,field){return`<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:.5px solid rgba(0,0,0,.05);cursor:pointer" onclick="openGF('${field}',null,'${val.replace(/'/g,"\\'")}')"><div><div style="font-size:10px;font-weight:600;color:var(--is);text-transform:uppercase;letter-spacing:.4px">${label}</div><div style="font-size:13px;margin-top:2px">${val}</div></div><span style="color:var(--a);font-size:16px">✏️</span></div>`;}
+function openGF(field,idx,val){
+  eGT={field,idx};
+  const lbs={'si-sn':'Site name','si-ad':'Address','si-hr':'Hours','crop-n':'Crop name','rule':'Safety rule'};
+  document.getElementById('mg-t').textContent='Edit '+(lbs[field]||field);
+  document.getElementById('mg-l').textContent=lbs[field]||field;
+  document.getElementById('mg-i').value=val;
+  document.getElementById('mo-gi').classList.add('on');
+}
+function saveGF2(){
+  const val=document.getElementById('mg-i').value.trim();if(!val){CM('mo-gi');return;}
+  const g=gG();const{field,idx}=eGT;
+  if(field==='si-sn')g.siteName=val;
+  else if(field==='si-ad')g.address=val;
+  else if(field==='si-hr')g.hours=val;
+  else if(field==='crop-n')g.crops[idx].n=val;
+  else if(field==='rule')g.rules[idx].t=val;
+  svG(g);CM('mo-gi');rGIEd();rGI();showT('✅ Garden info updated');
+}
+
+// Edit tabs
+function eT(tab){
+  ['co','sc','gi','gf'].forEach(t=>{
+    document.getElementById('ep-'+t).style.display=tab===t?'block':'none';
+    document.getElementById('et-'+t[0]).classList.toggle('on',tab===t[0]);
+  });
+  // fix tab button id mismatch
+  document.querySelectorAll('#sc-ae .to').forEach(b=>b.classList.remove('on'));
+  const tabMap={co:'et-c',sc:'et-s',gi:'et-g',gf:'et-f'};
+  const btn=document.getElementById(tabMap[tab]);if(btn)btn.classList.add('on');
+}
+
+// Geofence
+function initGeoUI(){
+  const g=gGeo();
+  document.getElementById('gf-n').value=g.name;
+  document.getElementById('gf-la').value=g.lat;
+  document.getElementById('gf-lo').value=g.lng;
+  document.getElementById('gf-r').value=g.radius;
+  document.getElementById('gf-tog').textContent=g.enabled?'✅ Enabled':'⭕ Disabled';
+}
+function togGeo(){const g=gGeo();g.enabled=!g.enabled;svGeo(g);document.getElementById('gf-tog').textContent=g.enabled?'✅ Enabled':'⭕ Disabled';showT(g.enabled?'Geofence enabled':'Geofence disabled');}
+function saveGeo(){
+  svGeo({name:document.getElementById('gf-n').value||'Garden',lat:parseFloat(document.getElementById('gf-la').value)||32.7102,lng:parseFloat(document.getElementById('gf-lo').value)||-117.0931,radius:parseInt(document.getElementById('gf-r').value)||150,enabled:gGeo().enabled});
+  showT('✅ Geofence saved');
+}
+
+// CSV download
+function dlCSV(rows,fn){
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=fn;a.click();URL.revokeObjectURL(url);
+}
+
+// Toast / burst
+function showT(m){const t=document.getElementById('tst');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),2800);}
+function showBst(p){const b=document.getElementById('bst');b.textContent=`+${p} pts 🌟`;b.classList.remove('on');void b.offsetWidth;b.classList.add('on');}
+
+// Init
+function init(){
+  // Populate cohort dropdown on signup
+  const ysScreen=document.getElementById('sc-ys');
+  if(ysScreen){
+    const obs=new MutationObserver(()=>{if(ysScreen.classList.contains('on'))popCoSel();});
+    obs.observe(ysScreen,{attributeFilter:['class']});
+  }
+}
+init();
+
+</script>
+</body>
+</html>
